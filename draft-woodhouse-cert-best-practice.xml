@@ -1,0 +1,345 @@
+<?xml version="1.0"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!-- One method to get references from the online citation libraries.
+     There has to be one entity for each item to be referenced. 
+          An alternate method (rfc include) is described in the references.
+     --><!ENTITY TLS SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5246.xml">
+<!ENTITY RFC1423 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.1423.xml">
+<!ENTITY RFC2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
+<!ENTITY RFC2434 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2434.xml">
+<!ENTITY RFC7512 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7512.xml">
+<!ENTITY RFC2437 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2437.xml">
+<!ENTITY RFC5915 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5915.xml">
+<!ENTITY DTLS SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6347.xml">
+]>
+<?rfc toc="no"?>
+<?rfc symrefs="yes"?>
+<rfc ipr="trust200902" category="bcp" docName="draft-woodhouse-cert-best-practice-00">
+  <front>
+    <title abbrev="Certificate best practice">Recommendations for applications using X.509 client certificates</title>
+    <author initials="D." surname="Woodhouse" fullname="David Woodhouse">
+      <organization>Intel</organization>
+      <address>
+        <postal>
+          <street/>
+          <city/>
+          <region/>
+          <country>UK</country>
+        </postal>
+        <email>dwmw2@infradead.org</email>
+      </address>
+    </author>
+    <author initials="N." surname="Mavrogiannopoulos" fullname="Nikos Mavrogiannopoulos">
+      <organization abbrev="Red Hat">Red Hat, Inc.</organization>
+      <address>
+        <postal>
+          <street/>
+          <city>Brno</city>
+          <region/>
+          <country>Czech Republic</country>
+        </postal>
+        <email>nmav@redhat.com</email>
+      </address>
+    </author>
+    <date month="September" year="2016"/>
+    <area>Security</area>
+    <!--      <workgroup>TLS Working Group</workgroup> -->
+    <keyword>I-D</keyword>
+    <keyword>Internet-Draft</keyword>
+    <keyword>X.509</keyword>
+    <keyword>TLS</keyword>
+    <keyword>Transport Layer Security</keyword>
+    <abstract>
+      <t>
+	X.509 certificates are widely used for client authentication
+	in many protocols, especially in conjunction with Transport
+	Layer Security (TLS) and Datagram Transport Layer Security
+	(DTLS). There exist a multitude of forms in which certificates
+	and especially their corresponding private keys may be stored
+	or referenced.
+      </t>
+      <t>
+	Applications have historically been massively inconsistent in
+	which subset of these forms have been supported. This memo sets
+	out best practice for applications in the interest of usability
+	and consistency.
+      </t>
+    </abstract>
+  </front>
+  <middle>
+    <section anchor="intro" title="Introduction">
+      <t>
+	These recommendations are intended to provide consistency to
+	users.  If a user has a client certificate in a file, or
+	residing in a hardware or software token or a system
+	certificate store, it should be possible to use that
+	certificate from any application, using exactly the same
+	identifier (e.g. its filename or PKCS#11 URI <xref
+	target="RFC7512"/>) to reference it.
+      </t>
+    </section>
+    <section anchor="terms" title="Terminology">
+      <t>
+           This document uses the same notation and terminology used in the TLS
+           and DTLS protocol specifications
+           <xref target="RFC5246"/><xref target="RFC6347"/>.
+	 </t>
+      <t>
+         The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+         NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and
+         "OPTIONAL" in this document are to be interpreted as described in
+         <xref target="RFC2119"/>.
+         </t>
+    </section>
+    <section anchor="keytypes" title="Key types">
+      <t>
+	Applications SHOULD NOT be limited to using only RSA keys. An application:
+      <list>
+	<t>• MUST support RSA keys of various sizes</t>
+	<t>• SHOULD support DSA keys of 1024 bits</t>
+	<t>• MUST support EC keys based on SECP256R1 and X25519 curves</t>
+	<t>• SHOULD support EC keys based on other well-known curves</t>
+      </list>
+      The use of DSA keys larger than 1024 bits is undefined in TLS and is thus
+      not included in these recommendations. See also <xref target="security"/>
+      regarding the use of key sizes and types regarded to be obsolescent.
+      </t>
+    </section>
+
+    <section anchor="identifiers" title="Identifier types">
+      <t>
+	There are a number of forms which a certificate identifier
+	might take.  Applications MAY require that the user explicitly
+	disambiguate between an inline data blob as discussed in <xref
+	target="ident-blob"/>, and an identifier which is merely a
+	reference to the location of the object, such as a filename or
+	other identifier addressed in the other subsections below.
+      </t>
+      <t>
+	Applications MUST NOT require that the user disambiguate
+	between other types of identifiers. For example, where PKCS#11
+	is supported an application MUST treat identifiers which are
+	valid PKCS#11 URIs as such instead of as filenames, without
+	being explicitly directed to do so by a separate "certificate
+	type" configuration item. In the extremely unlikely case that
+	ambiguity genuinely exists because a file has a name which
+	starts with "pkcs11:" and is otherwise valid according to
+	<xref target="RFC7512"/>, the user can resolve the ambiguity
+	by specifying an absolute path to the file in question, or
+	even a relative path prefixid with "./" or the appropriate
+	equivalent for the platform in question.
+      </t>
+      <t>
+	Applications SHOULD permit certificates and their corresponding
+	private keys to be identified separately, for example in
+	separate files or even with a certificate in a file and only the
+	private key in a system store or PKCs#11.
+      </t>
+      <t>
+	Applications MUST allow a passphrase or PIN to be provided for
+	private keys, and SHOULD allow a passphrase or PIN to be
+	provided for certificates. These may be provided in advance
+	via configuration, and/or requested at runtime via a callback or
+	user prompt as deemed appropriate.
+      </t>
+      <section anchor="ident-file" title="File name">
+	<t>
+	  Many application support the use of certificate and private keys
+	  stored in files on the file system. Such applications SHOULD
+	  support the use of files in any of the formats discussed in
+	  <xref target="formats"/>.
+	</t>
+	<t>
+	  Applications SHOULD NOT require the user to provide any
+	  additional hints regarding the contents of the file, such as
+	  whether the contents are in PEM or DER format. This SHOULD be
+	  determined by the application itself, automatically.
+	</t>
+      </section>
+      <section anchor="ident-blob" title="Inline data blob">
+        <t>
+	  In some cases, an application may accept certificate and
+	  private key data in the form of inline data embedded
+	  directly within its configuration file. In this case,
+	  applications SHOULD accept such data in any of the formats
+	  discussed in <xref target="formats"/>.
+	</t>
+	<t>
+	  As with filenames, applications SHOULD NOT require any
+	  hint to be provided regarding the format of the provided
+	  blob.
+	</t>
+      </section>
+      <section anchor="ident-pkcs11" title="PKCS#11 objects">
+	<t>
+	  On a platform which supports PKCS#11 <xref target="PKCS11"/>
+	  and has a system-wide configuration indicating which
+	  registry for which PKCS#11 provider modules should be
+	  loaded, applications SHOULD accept certificate and key
+	  identifiers in the form of a PKCS#11 URI <xref
+	  target="RFC7512"/>.
+	</t>
+	<t>
+	  Applications SHOULD use a PIN provided in a "pin-value"
+	  attribute field in such a URI, and SHOULD also allow a PIN
+	  to be provided via their normal mechanism for obtaining
+	  passwords for private keys when stored in files.
+	</t>
+	<t>
+	  Applications MAY accept legacy forms of identifier for
+	  PKCS#11 objects, for backward compatibility if they did so
+	  before the existence of RFC7512. They SHOULD NOT document
+	  these legacy identifiers as current practice, and SHOULD
+	  document the use of RFC7512 standard identifiers instead.
+	</t>
+      </section>
+      <section anchor="ident-system" title="System store">
+	<t>
+	  Some operating systems have their own system store for
+	  certificates and keys which is not based on
+	  PKCS#11. Applications SHOULD support the use of objects from
+	  such a system store, if it exists. If a convention exists
+	  for referencing objects therein, analogous to the one
+	  defined for PKCS#11 by <xref target="RFC7512"/>, then
+	  applications SHOULD accept such identifier strings.
+	</t>
+      </section>
+    </section>
+
+    <section anchor="formats" title="File formats">
+      <t>
+	There exist a multitude of formats in which certificates and
+	their corresponding private keys, and new formats come into
+	existence with distressing regularity.
+      </t>
+      <t>
+	Users have little control over the form in which certificates
+	are provisioned to them by their organisation's
+	infrastructure. As a result, applications should be expected
+	to deal with any of the formats listed below, as well as any
+	newer forms which become common.
+      </t>
+      <t>
+	The first difference that a user will typically encounter is
+	that some certificates are stored in base64 in text files
+	(PEM), while others are binary (DER). Applications MUST accept
+	both forms, MUST NOT require that the user indicate which
+	of these forms are used by the object in question, and MUST
+	infer it internally. Application authors who cannot achieve
+	this SHOULD consider taking up goat farming, and never
+	touching a cryptographic application again in their life.
+      </t>
+      <section anchor="format-pkcs1" title="PKCS#1 and other native ASN.1 encodings">
+	<t>
+	  Applications MUST support unencrypted private keys:
+	  <list>
+	    <t>• RSA keys in PKCS#1 form as defined by <xref target="RFC2437"/></t>
+	    <t>• DSA keys in the ASN.1 form defined by OpenSSL</t>
+	    <t>• EC keys in the form defined by <xref target="RFC5915"/></t>
+	  </list>
+	</t>
+      </section>
+      <section anchor="format-pkcs8" title="PKCS#8">
+	<t>Applications MUST support keys stored in PKCS#8
+	form. Applications MUST support unencypted PKCS#8 objects, as
+	well as those which are encrypted in various forms as
+	discussed in <xref target="encryption"/>.</t>
+      </section>
+      <section anchor="format-pkcs12" title="PKCS#12">
+	<t>Applications MUST support PKCS#12 objects encrypted with
+	the methods covered in <xref target="encryption"/>. Applications MUST
+	support PKCS#12 objects protected with SHA1 or SHA256 HMAC, and SHOULD
+	allow other HMAC algorithms which become common.
+      </t>
+      </section>
+    </section>
+    <section anchor="encryption" title="Private key encryption">
+      <t>Applications MUST support the encrypted PEM files based on
+      <xref target="RFC1423"/> which is commonly used by historical
+      versions of OpenSSL.</t>
+      <t>For PKCS#12 and PKCS#8 formats, applications MUST support the
+      common encryption types listed by below, and SHOULD accept any
+      other forms which are, or become common.</t>
+      <t>la la la... PBES1, PBES2 and the list of common defaults found in my tests/Makefile.am</t>
+      
+    </section>
+    <section anchor="security" title="Security Considerations">
+      <t>
+	Some might argue that these recommendations encourage the use
+	of obsolescent algorithms and formats which do not conform to
+	current cryptographic best practice. This may be true; however
+	it is not the responsibility of the client application to
+	enforce common sense in this respect.
+      </t>
+      <t>
+	If a user is in possession of a certificate for a 1024-bit DSA
+	key, for example, then we should focus on the server which is
+	accepting those certificates — not the client which is
+	attempting to use them. Client software tends to move more
+	quickly and be updated more frequently than servers, so
+	algorithms may be considered deprecated by a client, while the
+	server is still accepting them and an organisation's
+	infrastruture is even still issuing certificates in that form.
+      </t>
+      <t>
+	Likewise, it is common for private keys to be stored with weak
+	encryption. Even in OpenSSL 1.0.2, the default for PKCS#8
+	files is PBES1 and pbeWithMD5AndDES-CBC. Again, it is not the
+	place of the client application to enforce sanity. Especially
+	as there are valid reasons for accepting even unencrypted
+	forms of private keys, so it makes little sense to then refuse
+	to tolerate weakly-encrypted keys.
+      </t>
+</section>
+    <section anchor="IANA" title="IANA Considerations">
+      <t>
+              This document defines a new TLS extension, "application_specific_identifier", assigned
+              a value of TBD-BY-IANA (the value 48018 is suggested) from the TLS
+              ExtensionType registry defined in <xref target="RFC5246"/>.
+              This value is used as the extension number for the extensions in the client 
+              hello message.
+          </t>
+    </section>
+  </middle>
+  <back>
+    <references title="Normative References">
+
+	<!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml"?-->
+	&RFC2119;
+
+	<!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2437.xml"?-->
+	&RFC2437;
+
+	<!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.5915.xml"?-->
+	&RFC5915;
+
+	<!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7512.xml"?-->
+	&RFC7512;
+
+    </references>
+   	  <references title="Informative References">
+
+	<reference anchor="PKCS11" target="http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/pkcs11-base-v2.40.html">
+	  <front>
+	    <title>PKCS #11 Cryptographic Token Interface Base Specification Version 2.40</title>
+	    <author><organization>OASIS PKCS#11 Technical Committee</organization></author>
+	    <date year="2016" month="May"/>
+	  </front>
+   	</reference>
+
+	<!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.1423.xml"?-->
+	&RFC1423;
+
+	<!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.5246.xml"?-->
+	&TLS;
+
+	<!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.6347.xml"?-->
+	&DTLS;
+
+   	  </references>
+      <section title="Acknowledgements">
+      <t>
+      </t>
+      </section>
+  </back>
+</rfc>
