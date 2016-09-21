@@ -100,9 +100,20 @@
 	<t>• MUST support EC keys based on SECP256R1 and X25519 curves</t>
 	<t>• SHOULD support EC keys based on other well-known curves</t>
       </list>
-      The use of DSA keys larger than 1024 bits is undefined in TLS and is thus
-      not included in these recommendations. See also <xref target="security"/>
-      regarding the use of key sizes and types regarded to be obsolescent.
+      </t>
+      <t>
+	Where opaque keys such as in hardware tokens are used,
+	applications MUST support the use of private keys where the
+	corresponding public key is not made available to software.
+	Specifically, PKCS#11 tokens containing an EC private key and
+	no corresponding public key object MUST be supported when
+	PKCS#11 is supported.
+      </t>
+      <t>
+	The use of DSA keys larger than 1024 bits is undefined in TLS
+	and is thus not included in these recommendations. See also
+	<xref target="security"/> regarding the use of key sizes and
+	types regarded to be obsolescent.
       </t>
     </section>
 
@@ -128,19 +139,6 @@
 	by specifying an absolute path to the file in question, or
 	even a relative path prefixid with "./" or the appropriate
 	equivalent for the platform in question.
-      </t>
-      <t>
-	Applications SHOULD permit certificates and their corresponding
-	private keys to be identified separately, for example in
-	separate files or even with a certificate in a file and only the
-	private key in a system store or PKCs#11.
-      </t>
-      <t>
-	Applications MUST allow a passphrase or PIN to be provided for
-	private keys, and SHOULD allow a passphrase or PIN to be
-	provided for certificates. These may be provided in advance
-	via configuration, and/or requested at runtime via a callback or
-	user prompt as deemed appropriate.
       </t>
       <section anchor="ident-file" title="File name">
 	<t>
@@ -177,7 +175,9 @@
 	  registry for which PKCS#11 provider modules should be
 	  loaded, applications SHOULD accept certificate and key
 	  identifiers in the form of a PKCS#11 URI <xref
-	  target="RFC7512"/>.
+	  target="RFC7512"/>. Objects SHOULD then be located by an
+	  algorithm at least as capable as the one described in <xref
+	  target="pkcs11search"/>.
 	</t>
 	<t>
 	  Applications SHOULD use a PIN provided in a "pin-value"
@@ -262,6 +262,100 @@
       other forms which are, or become common.</t>
       <t>la la la... PBES1, PBES2 and the list of common defaults found in my tests/Makefile.am</t>
       
+    </section>
+    <section anchor="separatekey" title="Separation of certificate and private key">
+      <t>
+	It is not uncommon for a certificate and its corresponding
+	private key to be stored in separate files. Applications MUST
+	support this by allowing the certificate and the private key
+	to be specified separately in different configuration options.
+      </t>
+      <t>
+	If the private key is not explicitly specified, then the
+	application MUST attempt to find it based on the location of
+	the certificate. For files, this would naturally mean looking
+	in the same file. For PKCS#11, this SHOULD include an algorithm
+	at least as capable as the one described in <xref
+	target="pkcs11search"/>.
+      </t>
+      <t>
+	It should be noted that some cryptographic hardware tokens
+	only support private keys and do not provide any certificate
+	storage. In that case, is it feasible for a certificate to be
+	stored in a file while the key is in PKCS#11. Applications
+	which support PKCS#11 MUST support this combination, as well
+	as other combinations of locations for the certificate and its
+	private key.
+      </t>
+      <t>
+	Applications MUST allow a passphrase or PIN to be provided for
+	private keys, recognising that in some cases such as PKCS#12
+	files the same file is used for both certificate and private key.
+	Applications SHOULD also allow a separate passphrase or PIN to
+	be provided for certificates. These may be provided in advance via
+	configuration, and/or requested at runtime via a callback or
+	user prompt as deemed appropriate.
+      </t>
+    </section>
+    <section anchor="pkcs11search" title="Locating objects in PKCS#11">
+      <t>
+	The "PKCS#11 URI" defined by <xref target="RFC7512"/> is
+	slightly misnamed because it does not define a unique
+	identifier for a object; rather the attributes in the
+	identifier string are a set of search criteria used to filter
+	a set of objects.
+      </t>
+      <t>
+	A recommended method of locating objects in PKCS#11 is
+	presented here. It is not mandatory to follow precisely this
+	algorithm, but applications SHOULD use a method which will
+	result in them finding any object which would have been found
+	by this method.
+      </t>
+      <section anchor="pkcs11-cert" title="Locating PKCS#11 certificates">
+	<t>
+	  For locating certificates, applications first iterate over the
+	  available tokens without logging in to them. In each token
+	  which matches the provided PKCS#11 URI, a search is performed
+	  for matching certificate objects. The first matching object is
+	  used as the certificate.
+	</t>
+	<t>
+	  If no match is found, and precisely one token was matched by
+	  the specified URI, then the application attempts to log in to
+	  that token using a PIN which is provided in a "pin-value"
+	  attribute of the URI, in a separate configuration option, or
+	  via a run-time callback if appropriate. Another search is
+	  performed for matching objects, which this time will return
+	  even any certificate objects with the CKA_PRIVATE
+	  attribute. Is it important to note that the login should only
+	  be attempted if there is precisely one token which matches the
+	  URI, and not if there are multiple possible tokens in which
+	  the object could reside.
+	</t>
+      </section>
+      <section anchor="pkcs11-key" title="Locating PKCS#11 keys">
+	<t>
+	  If a private key location in PKCS#11 is explicitly specified
+	  as separate from the certificate, as discussed in <xref
+	  target="separatekey"/>, then no inferences can be made about
+	  its location based on the location of the
+	  certificate. Applications should follow the same procedure
+	  as in <xref target="pkcs11-cert"/> to locate the key.
+	</t>
+	<t>
+	  If the key is not explicitly specified, however, and the
+	  certificate was located in PKCS#11, then some assumptions
+	  can be made to help find the key if it is not found by the
+	  above method. In this case, the application should log
+	  in to the token in which the certificate was found, and
+	  perform a search using the original criteria specified in
+	  the provided PKCS#11 URI. If the key is not found and the
+	  original search was by CKA_LABEL of the certificate, then
+	  repeat the search using the CKA_ID of the certificate that
+	  was actually found, but not requiring a CKA_LABEL match.
+	</t>
+      </section>
     </section>
     <section anchor="security" title="Security Considerations">
       <t>
