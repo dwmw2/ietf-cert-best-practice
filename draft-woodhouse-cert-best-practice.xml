@@ -313,14 +313,39 @@ An alternate method (rfc include) is described in the references.
 	as other combinations of locations for the certificate and its
 	private key.
       </t>
+    </section>
+    <section anchor="passwords" title="Passwords and character sets">
       <t>
 	Applications MUST allow a passphrase or PIN to be provided for
-	private keys, recognising that in some cases such as PKCS#12
-	files the same file is used for both certificate and private key.
-	Applications SHOULD also allow a separate passphrase or PIN to
-	be provided for certificates. These may be provided in advance via
-	configuration, and/or requested at runtime via a callback or
-	user prompt as deemed appropriate.
+	private keys, either in advance through a separate
+	configuration item or by means of a callback at runtime which
+	can display a prompt to the user.
+      </t>
+      <t>
+	Applications SHOULD also allow for the possibility that a
+	passphrase or PIN is required to access a certificate,
+	separately from the passphrase or PIN requires for the private
+	key.
+      </t>
+      <t>
+	For PKCS#12 objects, applications MUST correctly support
+	conversion of passwords from the local character set to
+	BMPString for the purpose of key derivation. Applications
+	SHOULD also attempt to work around historical bugs in OpenSSL,
+	where the bytes of the password in the local character set were
+	simply alternated with 0x00 bytes in a very simple attempt to
+	convert ASCII to UTF-16.
+      </t>
+      <t>
+	Applications MAY attempt to work around the new bug introduced
+	in OpenSSL 1.1 when that original bug was fixed, but OpenSSL
+	should probably be fixed instead.
+      </t>
+      <t>
+	Where a password for a PKCS#8 object contains non-ASCII
+	characters, applications SHOULD attempt to convert to UTF-8
+	for the purpose of the key derivation, as well as trying the local
+	character set without conversion.
       </t>
     </section>
     <section anchor="pkcs11search" title="Locating objects in PKCS#11">
