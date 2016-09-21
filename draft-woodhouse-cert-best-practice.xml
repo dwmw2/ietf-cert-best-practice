@@ -357,6 +357,47 @@
 	</t>
       </section>
     </section>
+    <section anchor="validation" title="Validation and error handling">
+      <t>
+	Applications SHOULD validate that the certificate and private
+	key they are requested to use are actually a matching pair,
+	and report an error coherently to the user if not.
+      </t>
+      <t>
+	Where the key is entirely visible to software, this can be a
+	simple matter of comparing the public key parameters and many
+	cryptographic libraries will do that automatically. Where an
+	opaque key from hardware or a software API such as PKCS#11 is
+	used, libraries often bypass this check and an application
+	SHOULD explicitly ensure that it is performed, perhaps by
+	performing a signature operation using the private key and
+	then validating it against the certificate if necessary.
+      </t>
+      <t>
+	Where appropriate, applications SHOULD check whether a
+	certificate has expired or will imminently expire, and provide
+	a suitable warning or error to the user.
+      </t>
+      <t>
+	If an application is unable to use the designated certificate
+	and private key for any reason, a coherent error report SHOULD
+	be presented to the user explaining the reason for the failure.
+      </t>
+    </section>
+    <section anchor="libraries" title="Library support">
+      <t>
+	The blame for the appalling historical state of applications
+	with regard to these recommendations can be laid firmly at the
+	door of the common cryptographic libraries. At the time of
+	writing, most of them make it extremely hard for an
+	application to follow these recommendations — when they should
+	be making it hard for an application NOT to do so.
+      </t>
+      <t>
+	It is hoped that cryptographic libraries will update their
+	APIs to support the recommendations herein.
+      </t>
+    </section>
     <section anchor="security" title="Security Considerations">
       <t>
 	Some might argue that these recommendations encourage the use
