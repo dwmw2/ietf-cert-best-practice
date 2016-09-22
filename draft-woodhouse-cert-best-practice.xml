@@ -92,6 +92,23 @@ An alternate method (rfc include) is described in the references.
         "OPTIONAL" in this document are to be interpreted as described in
         <xref target="RFC2119"/>.
       </t>
+      <t>
+	Unless explicitly indicated otherwise, the terms "application"
+	and "applications" in this document refer to client
+	applications making use of X.509 certificates for
+	authentication and signatures. Except where explicitly
+	referenced in <xref target="writing"/>, tools which generate
+	certificate and public key files are outside the scope of this
+	document.
+      </t>
+      <t>
+	In particular, where this document requires that an
+	application "support" a given type of key or storage format,
+	that is limited strictly to reading and using the certificates
+	and private keys. Support for creating and writing such
+	objects is an orthogonal concern, and outside the scope of
+	client applications.
+      </t>
     </section>
     <section anchor="keytypes" title="Key types">
       <t>
@@ -108,7 +125,7 @@ An alternate method (rfc include) is described in the references.
 	Where opaque keys such as in hardware tokens are used,
 	applications MUST support the use of private keys where the
 	corresponding public key is not made available to software.
-	Specifically, PKCS#11 tokens containing an EC private key and
+	In particular, PKCS#11 tokens containing an EC private key and
 	no corresponding public key object MUST be supported when
 	PKCS#11 is supported.
       </t>
@@ -143,7 +160,7 @@ An alternate method (rfc include) is described in the references.
 	is supported an application MUST automatically infer that the
 	reference it has been given is a PKCS#11 URI rather than a
 	filename, without being explicitly directed to do so by a
-	separate "certificate type" configuration item. In the
+	separate configuration directive. In the
 	extremely unlikely case that ambiguity genuinely exists
 	because a file has a name which starts with "pkcs11:" and is
 	otherwise valid according to <xref target="RFC7512"/>, the
@@ -169,7 +186,14 @@ An alternate method (rfc include) is described in the references.
 	  Applications MAY accept absolute or relative filenames,
 	  and MAY also accept filenames in the form of a file:// URI.
 	</t>
-
+	<t>
+	  On a platform where the use of certificates and keys from
+	  files is commonplace, applications MUST support
+	  such. Applications which do not support a system-wide
+	  certificate store as discussed in <xref
+	  target="ident-pkcs11"/> and/or <xref target="ident-system"/>
+	  MUST support the use of certificates and keys from files.
+	</t>
       </section>
       <section anchor="ident-blob" title="Inline data blob">
         <t>
@@ -180,24 +204,28 @@ An alternate method (rfc include) is described in the references.
 	  mandated in <xref target="formats"/>.
 	</t>
 	<t>
-	  As with filenames, applications MUST NOT require any
-	  hint to be provided regarding the format of the provided
-	  blob.
+	  As with files, applications MUST NOT require any hint to be
+	  provided regarding the format of the provided blob.
 	</t>
       </section>
       <section anchor="ident-pkcs11" title="PKCS#11 objects">
 	<t>
 	  On a platform which supports PKCS#11 <xref target="PKCS11"/>
-	  and has a system-wide configuration indicating which
-	  registry for which PKCS#11 provider modules should be
-	  loaded, applications SHOULD accept certificate and key
-	  identifiers in the form of a PKCS#11 URI <xref
+	  and has a system-wide configuration indicating which which
+	  PKCS#11 provider modules should be loaded, applications
+	  SHOULD load the PKCS#11 providers indicated by the system
+	  configuration. Appklications MAY also load additional tokens
+	  according to their own configuration.
+	</t>
+	<t>
+	  Applications which support PKCS#11 MUST accept certificate
+	  and key identifiers in the form of a PKCS#11 URI <xref
 	  target="RFC7512"/>. Objects SHOULD then be located by an
 	  algorithm at least as capable as the one described in <xref
 	  target="pkcs11search"/>.
 	</t>
 	<t>
-	  Applications SHOULD allow a PIN to be provided in a
+	  Applications MUST allow a PIN to be provided in a
 	  "pin-value" attribute field in such a URI, and SHOULD also
 	  allow a PIN to be provided via their normal mechanism for
 	  obtaining passwords for private keys when stored in files.
@@ -215,10 +243,10 @@ An alternate method (rfc include) is described in the references.
 	  Some operating systems have their own system store for
 	  certificates and keys which is not based on
 	  PKCS#11. Applications SHOULD support the use of objects from
-	  such a system store, if it exists. If a convention exists
-	  for referencing objects therein, analogous to the one
-	  defined for PKCS#11 by <xref target="RFC7512"/>, then
-	  applications SHOULD accept such identifier strings.
+	  such a system store, if it exists. If a convention or
+	  standard exists for referencing objects therein, analogous
+	  to the one defined for PKCS#11 by <xref target="RFC7512"/>,
+	  then applications SHOULD accept such identifier strings.
 	</t>
       </section>
     </section>
@@ -227,7 +255,8 @@ An alternate method (rfc include) is described in the references.
       <t>
 	There exist a multitude of formats in which certificates and
 	their corresponding private keys can be stored, and new
-	formats come into existence with distressing regularity.
+	formats come into existence with distressing regularity. On
+	the latter topic, see <xref target="writing"/>
       </t>
       <t>
 	Users have little control over the form in which certificates
@@ -291,26 +320,25 @@ An alternate method (rfc include) is described in the references.
 	<list style="symbols">
 	  <t>PBES1 pbeWithMD5AndDES-CBC <xref target="RFC2898"/></t>
 	  <t>PBES1 pbeWithSHA1And3-KeyTripleDES-CBC <xref target="RFC7292"/></t>
-	  <t>PBES2 AES-128-CBC <xref target="RFC2898"/></t>
-	  <t>PBES2 AES-256-CBC <xref target="RFC2898"/></t>
-	</list>
-	It should be noted that the first entries at the list above are very much of its time,
-	but there are still widespread tools which output these encrypted forms.
-	Applications SHOULD add support for newer PBES2 methods as and
-	when they become common.
-      </t>
-      <t>
-	For writing objects applications MUST support exporting objects
-	to the PKCS#12 <xref target="RFC7292"/> format under the following
-	encryption methods:
-	<list style="symbols">
 	  <t>PBES2 AES-128-CBC (OID: 2.16.840.1.101.3.4.1.2) <xref target="RFC2898"/></t>
 	  <t>PBES2 AES-256-CBC (OID: 2.16.840.1.101.3.4.1.42) <xref target="RFC2898"/></t>
 	</list>
+	The weak methods included in the above list are unfortunately
+	still commonplace, and thus clients need to keep supporting
+	them as noted in <xref target="security"/>.
+      </t>
+      <t>The presence of these algorithms in the list is not in any way to be
+	taken as approval for tools to continue creating objects in
+	such forms. Except for a brief discussion in <xref
+	target="writing"/>. the creation of private keys is outside
+	the scope of this document.
       </t>
       <t>
-	Refer to <xref target="security"/> for notes on the security
-	implications of supporting keys encrypted with weak methods.
+	It should also be noted that this list is very much of its
+	time. It reflects current common practice, but the latest
+	methods on the list may also one day seem as outdated as
+	the first. Applications SHOULD add support for newer
+	methods as and when they become common.
       </t>
     </section>
     <section anchor="separatekey" title="Separation of certificate and private key">
@@ -318,13 +346,18 @@ An alternate method (rfc include) is described in the references.
 	It is not uncommon for a certificate and its corresponding
 	private key to be stored in separate files. When loading certificates
 	and keys, applications MUST support this by allowing the certificate
-	and the private key to be specified separately in different configuration options.
+	and the private key to be specified separately..
       </t>
       <t>
 	If the private key is not explicitly specified, then the
 	application MUST attempt to find it based on the location of
 	the certificate. For files, this would naturally mean looking
-	in the same file. For PKCS#11, this SHOULD include an algorithm
+	in the same file. Applications MAY also make reasonable inferences,
+	such as looking for a file with the extension ".key" if the certificate
+	was in a file with the extension ".crt" and the key wasn't found therein.
+      </t>
+      <t>
+	For PKCS#11, applications SHOULD search for a key using an algorithm
 	at least as capable as the one described in <xref
 	target="pkcs11search"/>.
       </t>
@@ -337,16 +370,57 @@ An alternate method (rfc include) is described in the references.
 	as other combinations of locations for the certificate and its
 	private key.
       </t>
+    </section>
+    <section anchor="writing" title="Writing private key files">
       <t>
-        When exporting a certificate and private key combination applications
-        MUST allow exporting in the PKCS#12 <xref target="RFC7292"/> format under the following
-        encryption methods:
+	In the general case, writing private key files is outside the
+	scope of this document. These recommendations cover only the
+	usage of certificate and private keys by client applications.
+	There are two specific exceptions to this general case, which follow.
+      </t>
+      <t>
+	Some client applications support exporting a certificate and
+	private key from a certificate store to a file. When doing so,
+	applications MUST allow exporting in at least the PKCS#12 <xref
+	target="RFC7292"/> format under the following encryption
+	methods:
 	<list style="symbols">
 	  <t>PBES2 AES-128-CBC (OID: 2.16.840.1.101.3.4.1.2) <xref target="RFC2898"/></t>
 	  <t>PBES2 AES-256-CBC (OID: 2.16.840.1.101.3.4.1.42) <xref target="RFC2898"/></t>
 	</list>
+	Applications which export private keys in encrypted form MUST
+	ensure that the password provided by the user is correctly
+	converted to the required character set for the encryption.
+	See notes in <xref target="passwords"/> regarding the ways in
+	which this has historically been broken in some cases.
+      </t>
+      <t>
+	The second exception is tools which generate keys and
+	provision certificates. Historically, these tools have been
+	responsible for the plethora of key formats and encryption
+	methods which client applications now are burdened to support.
+	Default output formats have been changed from one version of
+	software to the next, and even given versions of some software
+	have been inconsistent about which methods they use, according
+	to the operating they are performing.
+      </t>
+      <t>
+	Although these tools are outside the scope of this document,
+	we hope that they will improve matters. A given version of a
+	single piece of software should strive to generate keys by
+	default in as few different forms as possible, rather than
+	apparently trying to ensure that each operation performed with
+	that tool will generate a different format of file or use a
+	different encryption method.
+      </t>
+      <t>
+	Furthermore, when changing defaults or defining new formats and
+	encryption methods for private keys, some consideration should
+	be given to compatibility with existing clients and whether the
+	use cases can be handled with existing supported methods.
       </t>
     </section>
+
     </section>
     <section anchor="passwords" title="Passwords and character sets">
       <t>
@@ -358,28 +432,84 @@ An alternate method (rfc include) is described in the references.
       <t>
 	Applications SHOULD also allow for the possibility that a
 	passphrase or PIN is required to access a certificate,
-	separately from the passphrase or PIN requires for the private
+	separately from the passphrase or PIN required for the private
 	key.
       </t>
       <t>
-	For PKCS#12 objects, applications MUST correctly support
-	conversion of passwords from the local character set to
-	BMPString for the purpose of key derivation. Applications
-	SHOULD also attempt to work around historical bugs in OpenSSL,
-	where the bytes of the password in the local character set were
-	simply alternated with 0x00 bytes in a very simple attempt to
-	convert ASCII to UTF-16.
+	Applications MUST be aware of the local character set in which
+	the user provides the passphrase, and convert it as necessary.
       </t>
       <t>
-	Applications MAY attempt to work around the new bug introduced
-	in OpenSSL 1.1 when that original bug was fixed, but OpenSSL
-	should probably be fixed instead.
+	Where the password provided for a PKCS#8 object contains
+	non-ASCII characters and the local character set is not UTF-8,
+	applications SHOULD attempt to convert the password to UTF-8
+	for the purpose of the key derivation, as well as trying the
+	local character set without conversion.
       </t>
       <t>
-	Where a password for a PKCS#8 object contains non-ASCII
-	characters, applications SHOULD attempt to convert to UTF-8
-	for the purpose of the key derivation, as well as trying the local
-	character set without conversion.
+	When decrypting PKCS#12 objects applications MUST correctly
+	support conversion of passwords to BMPString for the purpose
+	of key derivation.
+      </t>
+      <t>
+	Applications SHOULD also attempt to work around the historical
+	PKCS#12 bug in OpenSSL, which always assumed the input
+	password was in the ISO8859-1 character set regardless of the
+	actual character set used on the system. This occurred because
+	it attempted to convert to UTF-16 for the BMPString merely by
+	alternating each byte from the input string with a zero byte
+	to expand to 16 bits.
+      </t>
+      <t>
+	As an example, consider a PKCS#12 file for which the password
+	is intended to be the following two characters:
+	<list>
+	  <t>U+0102 LATIN CAPITAL LETTER A WITH BREVE</t>
+	  <t>U+017B LATIN CAPITAL LETTER Z WITH DOT ABOVE</t>
+	</list>
+	For the purpose of this example, the user is operating in a
+	legacy 8-bit locale using the ISO8859-2 character set. The
+	above two characters are thus provided to the application as
+	the bytes 0xCF 0xAF.
+      </t>
+      <t>
+	The correct form of that password for PKCS#12 key derivation
+	would include rendering those characters into UTF-16
+	big-endian form as required for a BMPString, and would thus
+	include the bytes 0x01 0x02 0x01 0x7B. This is the correct
+	version which any application supporting the use of files for
+	certificates and keys MUST support.
+      </t>
+      <t>
+	Historical versions of OpenSSL, as noted, would assume that
+	the input bytes were in the ISO8859-1 character set. So the
+	BMPString used for key derivation in this case would include
+	the bytes 0x00 0xCF 0x00 0xAF.
+      </t>
+      <t>
+	An application in a non-ISO8859-1 locale can therefore attempt
+	to decrypt such wrongly-created files by treating the input
+	password as if it is a sequence of bytes in ISO8859-1 rather
+	than the locale character set in which it really was
+	provided. The application can generate the BMPString by
+	converting from ISO8859-1 to big-endian UTF-16, and attempt to
+	decrypt the file by deriving the key using that rendition of
+	the password.
+      </t>
+      <t>
+	From OpenSSL 1.1, the bug has been updated to the 21st century
+	without actually fixing it; OpenSSL merely assumes UTF-8
+	instead of ISO8859-1. So using the above example, OpenSSL
+	would interpret the (ISO8859-2) input bytes 0xCF 0xAF, by
+	wilfully ignoring their character set, wrongly assuming that
+	they are UTF-8 (in this case representing the single character
+	U+00EF LATIN SMALL LETTER I WITH DIAERESIS"), and converting
+	them to a BMPString containing the bytes 0x00 0xEF.
+      </t>
+      <t>
+	Applications MAY work around this new bug in OpenSSL, although
+	the world would be a better place if it were just fixed
+	properly this time.
       </t>
     </section>
     <section anchor="pkcs11search" title="Locating objects in PKCS#11">
