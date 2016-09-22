@@ -6,6 +6,7 @@ An alternate method (rfc include) is described in the references.
 -->
 <!ENTITY TLS SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5246.xml">
 <!ENTITY RFC1423 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.1423.xml">
+<!ENTITY RFC2898 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2898.xml">
 <!ENTITY RFC2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
 <!ENTITY RFC2434 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2434.xml">
 <!ENTITY RFC2437 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2437.xml">
@@ -14,6 +15,9 @@ An alternate method (rfc include) is described in the references.
 <!ENTITY RFC7292 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7292.xml">
 <!ENTITY RFC7512 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7512.xml">
 <!ENTITY DTLS SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6347.xml">
+<!ENTITY I-D.ietf-curdle-pkix SYSTEM
+	"http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-curdle-pkix-00.xml">
+
 ]>
 <?rfc toc="no"?>
 <?rfc symrefs="yes"?>
@@ -92,11 +96,12 @@ An alternate method (rfc include) is described in the references.
     <section anchor="keytypes" title="Key types">
       <t>
 	Applications MUST NOT be limited to using only RSA keys. An application:
-      <list>
-	<t>• MUST support RSA keys of various sizes</t>
-	<t>• SHOULD support DSA keys of 1024 bits</t>
-	<t>• MUST support EC keys based on SECP256R1 and X25519 curves</t>
-	<t>• SHOULD support EC keys based on other well-known curves</t>
+      <list style="symbols">
+	<t>MUST support RSA keys of various sizes</t>
+	<t>SHOULD support DSA keys of 1024 bits</t>
+	<t>MUST support ECDSA keys based on SECP256R1 curve</t>
+	<t>SHOULD support EdDSA keys based on Ed25519 curve</t>
+	<t>SHOULD support ECDSA or EdDSA keys based on other well-known curves</t>
       </list>
       </t>
       <t>
@@ -113,6 +118,13 @@ An alternate method (rfc include) is described in the references.
 	applications MAY choose to support such keys. See also <xref
 	target="security"/> regarding the use of key sizes and types
 	regarded to be obsolescent.
+      </t>
+      <t>
+        Note that in this text we explicitly mention ECDSA keys to distinguish
+        them from static ECDH keys, which have no significant deployment nor
+        use in Internet protocols. ECDSA keys are distinguished from static ECDH
+        keys by having a certificate which allows signing (in contrast to keyAgreement
+        for static ECDH keys).
       </t>
     </section>
 
@@ -237,18 +249,19 @@ An alternate method (rfc include) is described in the references.
       <section anchor="format-pkcs1" title="PKCS#1 and other native ASN.1 encodings">
 	<t>
 	  Applications MUST support unencrypted private keys:
-	  <list>
-	    <t>• RSA keys in PKCS#1 form as defined by <xref target="RFC2437"/></t>
-	    <t>• DSA keys in the ASN.1 form defined by OpenSSL (if DSA
-	    keys are supported at all)</t>
-	    <t>• EC keys in the form defined by <xref target="RFC5915"/></t>
+	  <list style="symbols">
+	    <t>RSA keys in PKCS#1 form as defined by <xref target="RFC2437"/></t>
+	    <t>DSA keys in the ASN.1 form defined by OpenSSL (if DSA
+	    keys are supported at all - see <xref target="openssl-dsa"/>)</t>
+	    <t>ECDSA keys in the form defined by <xref target="RFC5915"/></t>
+	    <t>EdDSA keys in the form defined by <xref target="I-D.ietf-curdle-pkix"/></t>
 	  </list>
 	</t>
       </section>
       <section anchor="format-pkcs8" title="PKCS#8">
 	<t>
 	  Applications MUST support keys stored in PKCS#8 form as
-	  defined in <xref target="RFC5208"/>. Applications MUST
+	  defined in <xref target="RFC5208"/> for all key types. Applications MUST
 	  support unencypted PKCS#8 objects, as well as those which
 	  are encrypted in various forms as discussed in <xref
 	  target="encryption"/>.
@@ -264,7 +277,8 @@ An alternate method (rfc include) is described in the references.
       </t>
       </section>
     </section>
-    <section anchor="encryption" title="Private key encryption">
+    <section anchor="privkeys" title="Private keys">
+    <section anchor="encryption" title="Encryption">
       <t>
 	Applications MUST support the encrypted PEM files in the form
 	based on <xref target="RFC1423"/> which is commonly used by
@@ -272,17 +286,27 @@ An alternate method (rfc include) is described in the references.
 	AES-128-CBC and AES-256-CBC modes.
       </t>
       <t>
-	For PKCS#12 and PKCS#8 formats, applications MUST support
-	objects stored with the following encryption methods:
-	<list>
-	  <t>• PBES1 pbeWithMD5AndDES-CBC</t>
-	  <t>• PBES1 pbeWithSHA1And3-KeyTripleDES-CBC</t>
-	  <t>• PBES2 AES-128-CBC</t>
-	  <t>• PBES2 AES-256-CBC</t>
+	For PKCS#12 <xref target="RFC7292"/> and PKCS#8 <xref target="RFC5208"/> formats, applications MUST support
+	reading objects stored with the following encryption methods:
+	<list style="symbols">
+	  <t>PBES1 pbeWithMD5AndDES-CBC <xref target="RFC2898"/></t>
+	  <t>PBES1 pbeWithSHA1And3-KeyTripleDES-CBC <xref target="RFC7292"/></t>
+	  <t>PBES2 AES-128-CBC <xref target="RFC2898"/></t>
+	  <t>PBES2 AES-256-CBC <xref target="RFC2898"/></t>
 	</list>
-	It should be noted that the above list is very much of its time,
-	and applications SHOULD add support for newer methods as and
+	It should be noted that the first entries at the list above are very much of its time,
+	but there are still widespread tools which output these encrypted forms.
+	Applications SHOULD add support for newer PBES2 methods as and
 	when they become common.
+      </t>
+      <t>
+	For writing objects applications MUST support exporting objects
+	to the PKCS#12 <xref target="RFC7292"/> format under the following
+	encryption methods:
+	<list style="symbols">
+	  <t>PBES2 AES-128-CBC (OID: 2.16.840.1.101.3.4.1.2) <xref target="RFC2898"/></t>
+	  <t>PBES2 AES-256-CBC (OID: 2.16.840.1.101.3.4.1.42) <xref target="RFC2898"/></t>
+	</list>
       </t>
       <t>
 	Refer to <xref target="security"/> for notes on the security
@@ -292,9 +316,9 @@ An alternate method (rfc include) is described in the references.
     <section anchor="separatekey" title="Separation of certificate and private key">
       <t>
 	It is not uncommon for a certificate and its corresponding
-	private key to be stored in separate files. Applications MUST
-	support this by allowing the certificate and the private key
-	to be specified separately in different configuration options.
+	private key to be stored in separate files. When loading certificates
+	and keys, applications MUST support this by allowing the certificate
+	and the private key to be specified separately in different configuration options.
       </t>
       <t>
 	If the private key is not explicitly specified, then the
@@ -313,6 +337,16 @@ An alternate method (rfc include) is described in the references.
 	as other combinations of locations for the certificate and its
 	private key.
       </t>
+      <t>
+        When exporting a certificate and private key combination applications
+        MUST allow exporting in the PKCS#12 <xref target="RFC7292"/> format under the following
+        encryption methods:
+	<list style="symbols">
+	  <t>PBES2 AES-128-CBC (OID: 2.16.840.1.101.3.4.1.2) <xref target="RFC2898"/></t>
+	  <t>PBES2 AES-256-CBC (OID: 2.16.840.1.101.3.4.1.42) <xref target="RFC2898"/></t>
+	</list>
+      </t>
+    </section>
     </section>
     <section anchor="passwords" title="Passwords and character sets">
       <t>
@@ -489,6 +523,9 @@ An alternate method (rfc include) is described in the references.
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml"?-->
       &RFC2119;
 
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2898.xml"?-->
+      &RFC2898;
+
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2437.xml"?-->
       &RFC2437;
 
@@ -503,6 +540,9 @@ An alternate method (rfc include) is described in the references.
 
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7512.xml"?-->
       &RFC7512;
+
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-curdle-pkix-00.xml"?-->
+      &I-D.ietf-curdle-pkix;
 
     </references>
     <references title="Informative References">
@@ -529,5 +569,27 @@ An alternate method (rfc include) is described in the references.
       <t>
       </t>
     </section>
+    <section anchor="openssl-dsa" title="DSA Private key description">
+      <t>
+The following figure describes the ASN.1 description of DSA private keys
+generated by the openssl application. Today the DER encoding of this format
+is a widely accepted standard format for storing DSA private keys. The stored
+format may be either a raw DER encoding, or a PEM encoding with the header
+"BEGIN DSA PRIVATE KEY".
+      </t>
+<figure>
+<artwork><![CDATA[
+    DSAPrivateKey ::= SEQUENCE {
+        version  INTEGER, -- should be zero
+        p        INTEGER,
+        q        INTEGER,
+        g        INTEGER,
+        Y        INTEGER, -- public
+        priv     INTEGER, -- private
+}
+]]></artwork>
+</figure>
+    </section>
+
   </back>
 </rfc>
