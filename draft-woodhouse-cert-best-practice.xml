@@ -507,9 +507,14 @@ An alternate method (rfc include) is described in the references.
 	them to a BMPString containing the bytes 0x00 0xEF.
       </t>
       <t>
-	Applications MAY work around this new bug in OpenSSL, although
-	the world would be a better place if it were just fixed
-	properly this time.
+	Applications MAY work around this new bug in OpenSSL, by
+	treating the input password as a UTF-8 byte stream. Note that
+	if the byte sequence of the input password doesn't happen to
+	be valid UTF-8, as it was in the carefully-contrived example
+	above, then OpenSSL 1.1 will revert to its old behaviour of
+	assuming ISO8859-1. In no circumstances does OpenSSL convert a
+	non-ASCII password correctly, in non-UTF-8 and non-ISO8859-1
+	locales.
       </t>
     </section>
     <section anchor="pkcs11search" title="Locating objects in PKCS#11">
