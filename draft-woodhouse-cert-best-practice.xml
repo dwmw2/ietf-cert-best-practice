@@ -388,6 +388,8 @@ An alternate method (rfc include) is described in the references.
 	  <t>PBES2 AES-128-CBC (OID: 2.16.840.1.101.3.4.1.2) <xref target="RFC2898"/></t>
 	  <t>PBES2 AES-256-CBC (OID: 2.16.840.1.101.3.4.1.42) <xref target="RFC2898"/></t>
 	</list>
+      </t>
+      <t>
 	Applications which export private keys in encrypted form MUST
 	ensure that the password provided by the user is correctly
 	converted to the required character set for the encryption.
