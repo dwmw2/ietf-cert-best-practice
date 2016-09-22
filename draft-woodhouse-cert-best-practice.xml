@@ -95,12 +95,12 @@ An alternate method (rfc include) is described in the references.
     <section anchor="keytypes" title="Key types">
       <t>
 	Applications MUST NOT be limited to using only RSA keys. An application:
-      <list>
-	<t>• MUST support RSA keys of various sizes</t>
-	<t>• SHOULD support DSA keys of 1024 bits</t>
-	<t>• MUST support ECDSA keys based on SECP256R1 curve</t>
-	<t>• SHOULD support EdDSA keys based on Ed25519 curve</t>
-	<t>• SHOULD support ECDSA or EdDSA keys based on other well-known curves</t>
+      <list style="symbols">
+	<t>MUST support RSA keys of various sizes</t>
+	<t>SHOULD support DSA keys of 1024 bits</t>
+	<t>MUST support ECDSA keys based on SECP256R1 curve</t>
+	<t>SHOULD support EdDSA keys based on Ed25519 curve</t>
+	<t>SHOULD support ECDSA or EdDSA keys based on other well-known curves</t>
       </list>
       </t>
       <t>
@@ -248,12 +248,12 @@ An alternate method (rfc include) is described in the references.
       <section anchor="format-pkcs1" title="PKCS#1 and other native ASN.1 encodings">
 	<t>
 	  Applications MUST support unencrypted private keys:
-	  <list>
-	    <t>• RSA keys in PKCS#1 form as defined by <xref target="RFC2437"/></t>
-	    <t>• DSA keys in the ASN.1 form defined by OpenSSL (if DSA
+	  <list style="symbols">
+	    <t>RSA keys in PKCS#1 form as defined by <xref target="RFC2437"/></t>
+	    <t>DSA keys in the ASN.1 form defined by OpenSSL (if DSA
 	    keys are supported at all - see <xref target="openssl-dsa"/>)</t>
-	    <t>• ECDSA keys in the form defined by <xref target="RFC5915"/></t>
-	    <t>• EdDSA keys in the form defined by <xref target="I-D.ietf-curdle-pkix"/></t>
+	    <t>ECDSA keys in the form defined by <xref target="RFC5915"/></t>
+	    <t>EdDSA keys in the form defined by <xref target="I-D.ietf-curdle-pkix"/></t>
 	  </list>
 	</t>
       </section>
@@ -286,11 +286,11 @@ An alternate method (rfc include) is described in the references.
       <t>
 	For PKCS#12 and PKCS#8 formats, applications MUST support
 	objects stored with the following encryption methods:
-	<list>
-	  <t>• PBES1 pbeWithMD5AndDES-CBC</t>
-	  <t>• PBES1 pbeWithSHA1And3-KeyTripleDES-CBC</t>
-	  <t>• PBES2 AES-128-CBC</t>
-	  <t>• PBES2 AES-256-CBC</t>
+	<list style="symbols">
+	  <t>PBES1 pbeWithMD5AndDES-CBC</t>
+	  <t>PBES1 pbeWithSHA1And3-KeyTripleDES-CBC</t>
+	  <t>PBES2 AES-128-CBC</t>
+	  <t>PBES2 AES-256-CBC</t>
 	</list>
 	It should be noted that the above list is very much of its time,
 	and applications SHOULD add support for newer methods as and
