@@ -277,7 +277,8 @@ An alternate method (rfc include) is described in the references.
       </t>
       </section>
     </section>
-    <section anchor="encryption" title="Private key encryption">
+    <section anchor="privkeys" title="Private keys">
+    <section anchor="encryption" title="Encryption">
       <t>
 	Applications MUST support the encrypted PEM files in the form
 	based on <xref target="RFC1423"/> which is commonly used by
@@ -285,8 +286,8 @@ An alternate method (rfc include) is described in the references.
 	AES-128-CBC and AES-256-CBC modes.
       </t>
       <t>
-	For PKCS#12 and PKCS#8 formats, applications MUST support
-	objects stored with the following encryption methods:
+	For PKCS#12 <xref target="RFC7292"/> and PKCS#8 <xref target="RFC5208"/> formats, applications MUST support
+	reading objects stored with the following encryption methods:
 	<list style="symbols">
 	  <t>PBES1 pbeWithMD5AndDES-CBC <xref target="RFC2898"/></t>
 	  <t>PBES1 pbeWithSHA1And3-KeyTripleDES-CBC <xref target="RFC7292"/></t>
@@ -299,6 +300,15 @@ An alternate method (rfc include) is described in the references.
 	when they become common.
       </t>
       <t>
+	For writing objects applications MUST support exporting objects
+	to the PKCS#12 <xref target="RFC7292"/> format under the following
+	encryption methods:
+	<list style="symbols">
+	  <t>PBES2 AES-128-CBC (OID: 2.16.840.1.101.3.4.1.2) <xref target="RFC2898"/></t>
+	  <t>PBES2 AES-256-CBC (OID: 2.16.840.1.101.3.4.1.42) <xref target="RFC2898"/></t>
+	</list>
+      </t>
+      <t>
 	Refer to <xref target="security"/> for notes on the security
 	implications of supporting keys encrypted with weak methods.
       </t>
@@ -306,9 +316,9 @@ An alternate method (rfc include) is described in the references.
     <section anchor="separatekey" title="Separation of certificate and private key">
       <t>
 	It is not uncommon for a certificate and its corresponding
-	private key to be stored in separate files. Applications MUST
-	support this by allowing the certificate and the private key
-	to be specified separately in different configuration options.
+	private key to be stored in separate files. When loading certificates
+	and keys, applications MUST support this by allowing the certificate
+	and the private key to be specified separately in different configuration options.
       </t>
       <t>
 	If the private key is not explicitly specified, then the
@@ -327,6 +337,16 @@ An alternate method (rfc include) is described in the references.
 	as other combinations of locations for the certificate and its
 	private key.
       </t>
+      <t>
+        When exporting a certificate and private key combination applications
+        MUST allow exporting in the PKCS#12 <xref target="RFC7292"/> format under the following
+        encryption methods:
+	<list style="symbols">
+	  <t>PBES2 AES-128-CBC (OID: 2.16.840.1.101.3.4.1.2) <xref target="RFC2898"/></t>
+	  <t>PBES2 AES-256-CBC (OID: 2.16.840.1.101.3.4.1.42) <xref target="RFC2898"/></t>
+	</list>
+      </t>
+    </section>
     </section>
     <section anchor="passwords" title="Passwords and character sets">
       <t>
