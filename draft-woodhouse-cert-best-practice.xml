@@ -6,6 +6,7 @@ An alternate method (rfc include) is described in the references.
 -->
 <!ENTITY TLS SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5246.xml">
 <!ENTITY RFC1423 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.1423.xml">
+<!ENTITY RFC2898 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2898.xml">
 <!ENTITY RFC2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
 <!ENTITY RFC2434 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2434.xml">
 <!ENTITY RFC2437 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2437.xml">
@@ -287,13 +288,14 @@ An alternate method (rfc include) is described in the references.
 	For PKCS#12 and PKCS#8 formats, applications MUST support
 	objects stored with the following encryption methods:
 	<list style="symbols">
-	  <t>PBES1 pbeWithMD5AndDES-CBC</t>
-	  <t>PBES1 pbeWithSHA1And3-KeyTripleDES-CBC</t>
-	  <t>PBES2 AES-128-CBC</t>
-	  <t>PBES2 AES-256-CBC</t>
+	  <t>PBES1 pbeWithMD5AndDES-CBC <xref target="RFC2898"/></t>
+	  <t>PBES1 pbeWithSHA1And3-KeyTripleDES-CBC <xref target="RFC7292"/></t>
+	  <t>PBES2 AES-128-CBC <xref target="RFC2898"/></t>
+	  <t>PBES2 AES-256-CBC <xref target="RFC2898"/></t>
 	</list>
-	It should be noted that the above list is very much of its time,
-	and applications SHOULD add support for newer methods as and
+	It should be noted that the first entries at the list above are very much of its time,
+	but there are still widespread tools which output these encrypted forms.
+	Applications SHOULD add support for newer PBES2 methods as and
 	when they become common.
       </t>
       <t>
@@ -500,6 +502,9 @@ An alternate method (rfc include) is described in the references.
 
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml"?-->
       &RFC2119;
+
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2898.xml"?-->
+      &RFC2898;
 
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2437.xml"?-->
       &RFC2437;
