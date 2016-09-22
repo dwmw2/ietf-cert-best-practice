@@ -214,7 +214,7 @@ An alternate method (rfc include) is described in the references.
 	  and has a system-wide configuration indicating which which
 	  PKCS#11 provider modules should be loaded, applications
 	  SHOULD load the PKCS#11 providers indicated by the system
-	  configuration. Appklications MAY also load additional tokens
+	  configuration. Applications MAY also load additional tokens
 	  according to their own configuration.
 	</t>
 	<t>
@@ -226,7 +226,7 @@ An alternate method (rfc include) is described in the references.
 	</t>
 	<t>
 	  Applications MUST allow a PIN to be provided in a
-	  "pin-value" attribute field in such a URI, and SHOULD also
+	  "pin-value" attribute in such a URI, and SHOULD also
 	  allow a PIN to be provided via their normal mechanism for
 	  obtaining passwords for private keys when stored in files.
 	</t>
@@ -256,7 +256,7 @@ An alternate method (rfc include) is described in the references.
 	There exist a multitude of formats in which certificates and
 	their corresponding private keys can be stored, and new
 	formats come into existence with distressing regularity. On
-	the latter topic, see <xref target="writing"/>
+	the latter topic, see <xref target="writing"/>.
       </t>
       <t>
 	Users have little control over the form in which certificates
@@ -280,8 +280,9 @@ An alternate method (rfc include) is described in the references.
 	  Applications MUST support unencrypted private keys:
 	  <list style="symbols">
 	    <t>RSA keys in PKCS#1 form as defined by <xref target="RFC2437"/></t>
-	    <t>DSA keys in the ASN.1 form defined by OpenSSL (if DSA
-	    keys are supported at all - see <xref target="openssl-dsa"/>)</t>
+	    <t>DSA keys in the ASN.1 form defined by OpenSSL and
+	    documented in <xref target="openssl-dsa"/> (if DSA keys
+	    are supported at all)</t>
 	    <t>ECDSA keys in the form defined by <xref target="RFC5915"/></t>
 	    <t>EdDSA keys in the form defined by <xref target="I-D.ietf-curdle-pkix"/></t>
 	  </list>
@@ -323,6 +324,8 @@ An alternate method (rfc include) is described in the references.
 	  <t>PBES2 AES-128-CBC (OID: 2.16.840.1.101.3.4.1.2) <xref target="RFC2898"/></t>
 	  <t>PBES2 AES-256-CBC (OID: 2.16.840.1.101.3.4.1.42) <xref target="RFC2898"/></t>
 	</list>
+      </t>
+      <t>
 	The weak methods included in the above list are unfortunately
 	still commonplace, and thus clients need to keep supporting
 	them as noted in <xref target="security"/>.
@@ -346,7 +349,16 @@ An alternate method (rfc include) is described in the references.
 	It is not uncommon for a certificate and its corresponding
 	private key to be stored in separate files. When loading certificates
 	and keys, applications MUST support this by allowing the certificate
-	and the private key to be specified separately..
+	and the private key to be specified separately.
+      </t>
+      <t>
+	Applications MUST NOT require that the certificate and private
+	key be in the same type of location — for example, both in
+	files, or both in PKCS#11 objects. In particular, it is often
+	the case that cryptographic hardware tokens only support
+	private keys and do not provide any certificate storage. In
+	that case, it is entirely normal for the certificate to be
+	stored in a file while the key is accessed via PKCS#11.
       </t>
       <t>
 	If the private key is not explicitly specified, then the
@@ -360,15 +372,6 @@ An alternate method (rfc include) is described in the references.
 	For PKCS#11, applications SHOULD search for a key using an algorithm
 	at least as capable as the one described in <xref
 	target="pkcs11search"/>.
-      </t>
-      <t>
-	It should be noted that some cryptographic hardware tokens
-	only support private keys and do not provide any certificate
-	storage. In that case, is it feasible for a certificate to be
-	stored in a file while the key is in PKCS#11. Applications
-	which support PKCS#11 MUST support this combination, as well
-	as other combinations of locations for the certificate and its
-	private key.
       </t>
     </section>
     <section anchor="writing" title="Writing private key files">
@@ -404,7 +407,7 @@ An alternate method (rfc include) is described in the references.
 	Default output formats have been changed from one version of
 	software to the next, and even given versions of some software
 	have been inconsistent about which methods they use, according
-	to the operating they are performing.
+	to the operation they are performing.
       </t>
       <t>
 	Although these tools are outside the scope of this document,
