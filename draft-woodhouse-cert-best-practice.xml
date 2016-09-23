@@ -11,6 +11,7 @@ An alternate method (rfc include) is described in the references.
 <!ENTITY RFC2434 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2434.xml">
 <!ENTITY RFC2437 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2437.xml">
 <!ENTITY RFC5208 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5208.xml">
+<!ENTITY RFC5958 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5958.xml">
 <!ENTITY RFC5915 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5915.xml">
 <!ENTITY RFC7292 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7292.xml">
 <!ENTITY RFC7512 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7512.xml">
@@ -296,6 +297,12 @@ An alternate method (rfc include) is described in the references.
 	  are encrypted in various forms as discussed in <xref
 	  target="encryption"/>.
 	</t>
+	<t>
+	  Applications MAY support the updated version of PKCS#8 is
+	  defined in <xref target="RFC5958"/>. At the time of writing,
+	  there does not seem to be widespread use of keys in the
+	  new form, so such support is not mandatory.
+	</t>
       </section>
       <section anchor="format-pkcs12" title="PKCS#12">
 	<t>Applications MUST support the use of certificates and keys
@@ -316,8 +323,9 @@ An alternate method (rfc include) is described in the references.
 	AES-128-CBC and AES-256-CBC modes.
       </t>
       <t>
-	For PKCS#12 <xref target="RFC7292"/> and PKCS#8 <xref target="RFC5208"/> formats, applications MUST support
-	reading objects stored with the following encryption methods:
+	For PKCS#12 <xref target="RFC7292"/> and PKCS#8 <xref
+	target="RFC5208"/> formats, applications MUST support reading
+	objects stored with the following encryption methods:
 	<list style="symbols">
 	  <t>PBES1 pbeWithMD5AndDES-CBC <xref target="RFC2898"/></t>
 	  <t>PBES1 pbeWithSHA1And3-KeyTripleDES-CBC <xref target="RFC7292"/></t>
@@ -445,82 +453,113 @@ An alternate method (rfc include) is described in the references.
 	the user provides the passphrase, and convert it as necessary.
       </t>
       <t>
-	Where the password provided for a PKCS#8 object contains
-	non-ASCII characters and the local character set is not UTF-8,
-	applications SHOULD attempt to convert the password to UTF-8
-	for the purpose of the key derivation, as well as trying the
-	local character set without conversion.
+	Password representations based on Unicode (BMPString for
+	PKCS#12, UTF-8 for PKCS#5) SHOULD be normalized according to
+	Unicode normalization form "NFC" <xref target="NFC"/>.
       </t>
-      <t>
-	When decrypting PKCS#12 objects applications MUST correctly
-	support conversion of passwords to BMPString for the purpose
-	of key derivation.
-      </t>
-      <t>
-	Applications SHOULD also attempt to work around the historical
-	PKCS#12 bug in OpenSSL, which always assumed the input
-	password was in the ISO8859-1 character set regardless of the
-	actual character set used on the system. This occurred because
-	it attempted to convert to UTF-16 for the BMPString merely by
-	alternating each byte from the input string with a zero byte
-	to expand to 16 bits.
-      </t>
-      <t>
-	As an example, consider a PKCS#12 file for which the password
-	is intended to be the following two characters:
-	<list>
-	  <t>U+0102 LATIN CAPITAL LETTER A WITH BREVE</t>
-	  <t>U+017B LATIN CAPITAL LETTER Z WITH DOT ABOVE</t>
-	</list>
-	For the purpose of this example, the user is operating in a
-	legacy 8-bit locale using the ISO8859-2 character set. The
-	above two characters are thus provided to the application as
-	the bytes 0xCF 0xAF.
-      </t>
-      <t>
-	The correct form of that password for PKCS#12 key derivation
-	would include rendering those characters into UTF-16
-	big-endian form as required for a BMPString, and would thus
-	include the bytes 0x01 0x02 0x01 0x7B. This is the correct
-	version which any application supporting the use of files for
-	certificates and keys MUST support.
-      </t>
-      <t>
-	Historical versions of OpenSSL, as noted, would assume that
-	the input bytes were in the ISO8859-1 character set. So the
-	BMPString used for key derivation in this case would include
-	the bytes 0x00 0xCF 0x00 0xAF.
-      </t>
-      <t>
-	An application in a non-ISO8859-1 locale can therefore attempt
-	to decrypt such wrongly-created files by treating the input
-	password as if it is a sequence of bytes in ISO8859-1 rather
-	than the locale character set in which it really was
-	provided. The application can generate the BMPString by
-	converting from ISO8859-1 to big-endian UTF-16, and attempt to
-	decrypt the file by deriving the key using that rendition of
-	the password.
-      </t>
-      <t>
-	From OpenSSL 1.1, the bug has been updated to the 21st century
-	without actually fixing it; OpenSSL merely assumes UTF-8
-	instead of ISO8859-1. So using the above example, OpenSSL
-	would interpret the (ISO8859-2) input bytes 0xCF 0xAF, by
-	wilfully ignoring their character set, wrongly assuming that
-	they are UTF-8 (in this case representing the single character
-	U+00EF LATIN SMALL LETTER I WITH DIAERESIS"), and converting
-	them to a BMPString containing the bytes 0x00 0xEF.
-      </t>
-      <t>
-	Applications MAY work around this new bug in OpenSSL, by
-	treating the input password as a UTF-8 byte stream. Note that
-	if the byte sequence of the input password doesn't happen to
-	be valid UTF-8, as it was in the carefully-contrived example
-	above, then OpenSSL 1.1 will revert to its old behaviour of
-	assuming ISO8859-1. In no circumstances does OpenSSL convert a
-	non-ASCII password correctly, in non-UTF-8 and non-ISO8859-1
-	locales.
-      </t>
+      <section anchor="password-pkcs12" title="Passwords in PKCS#12">
+	<t>
+	  PKCS#12 <xref target="RFC7292"/> explicitly specifies the
+	  character set to be used for the password in the key
+	  derivation, as a BMPString.  When decrypting PKCS#12 objects
+	  applications MUST correctly support conversion of passwords
+	  to BMPString for the purpose of key derivation.
+	</t>
+	<t>
+	  Applications SHOULD also attempt to work around the historical
+	  PKCS#12 bug in OpenSSL, which always assumed the input
+	  password was in the ISO8859-1 character set regardless of the
+	  actual character set used on the system. This occurred because
+	  it attempted to convert to UTF-16 for the BMPString merely by
+	  alternating each byte from the input string with a zero byte
+	  to expand to 16 bits.
+	</t>
+	<t>
+	  As an example, consider a PKCS#12 file for which the password
+	  is intended to be the following two characters:
+	  <list>
+	    <t>U+0102 LATIN CAPITAL LETTER A WITH BREVE</t>
+	    <t>U+017B LATIN CAPITAL LETTER Z WITH DOT ABOVE</t>
+	  </list>
+	  For the purpose of this example, the user is operating in a
+	  legacy 8-bit locale using the ISO8859-2 character set. The
+	  above two characters are thus provided to the application as
+	  the bytes 0xC3 0xAF.
+	</t>
+	<t>
+	  The correct form of that password for PKCS#12 key derivation
+	  includes precisely those characters in UTF-16 big-endian
+	  form as required for a BMPString: the bytes 0x01 0x02 0x01
+	  0x7B. This is the correct version which any application
+	  supporting the use of files for certificates and keys MUST
+	  support.
+	</t>
+	<t>
+	  Historical versions of OpenSSL, as noted, would assume that
+	  the input bytes were in the ISO8859-1 character set. So the
+	  input bytes 0xC3 0xAF would therefore be interpreted as the
+	  two characters:
+	  <list>
+	    <t>U+00C3 LATIN CAPITAL LETTER A WITH TILDE</t>
+	    <t>U+00AF MACRON</t>
+	  </list>
+	  The BMPString used for key derivation in this case would
+	  include the bytes 0x00 0xC3 0x00 0xAF.
+	</t>
+	<t>
+	  An application in a non-ISO8859-1 locale can therefore attempt
+	  to decrypt such wrongly-created files by treating the input
+	  password as if it is a sequence of bytes in ISO8859-1 rather
+	  than the locale character set in which it really was
+	  provided. The application can generate the BMPString by
+	  converting from ISO8859-1 to big-endian UTF-16, and attempt to
+	  decrypt the file by deriving the key using that rendition of
+	  the password.
+	</t>
+	<t>
+	  From OpenSSL 1.1, the bug has been updated to the 21st century
+	  without actually fixing it; OpenSSL merely assumes UTF-8
+	  instead of ISO8859-1. So using the above example, OpenSSL
+	  would interpret the (ISO8859-2) input bytes 0xC3 0xAF, by
+	  wilfully ignoring their character set, wrongly assuming that
+	  they are UTF-8 (in this case representing the single character
+	  U+00EF LATIN SMALL LETTER I WITH DIAERESIS"), and converting
+	  them to a BMPString containing the bytes 0x00 0xEF.
+	</t>
+	<t>
+	  Applications MAY work around this new bug in OpenSSL, by
+	  treating the input password as a UTF-8 byte stream. Note that
+	  if the byte sequence of the input password doesn't happen to
+	  be valid UTF-8, as it was in the carefully-contrived example
+	  above, then OpenSSL 1.1 will revert to its old behaviour of
+	  assuming ISO8859-1. In no circumstances does OpenSSL convert a
+	  non-ASCII password correctly, in a locale which uses neither
+	  UTF-8 nor ISO8859-1.
+	</t>
+      </section>
+      <section anchor="password-pkcs5" title="PKCS#5 password derivation">
+	<t>
+	  Some storage formats such as PKCS#8 <xref target="RFC5208"/>
+	  make use of key deriviation functions defined in PKCS#5
+	  <xref target="RFC2898"/> for encryption. Lamentably, PKCS#5
+	  does not mandate the use of a specific character set for
+	  interoperability. It does, however, recommend "that
+	  applications follow some common text encoding rules.  ASCII
+	  and UTF-8 are two possibilities."
+	</t>
+	<t>
+	  Strictly speaking, that's only one possibility, since (as it
+	  says) ASCII is a subset of UTF-8. In these recommendations,
+	  therefore, client applications MUST render a non-ASCII
+	  password into UTF-8 for the purpose of key derivation to
+	  attempt to decrypt objects.
+	</t>
+	<t>
+	  Applications operating in non-UTF-8 locales SHOULD also
+	  attempt to decrypt such objects using a key derived from
+	  the password in the local character set.
+	</t>
+      </section>
     </section>
     <section anchor="pkcs11search" title="Locating objects in PKCS#11">
       <t>
@@ -672,6 +711,9 @@ An alternate method (rfc include) is described in the references.
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.5208.xml"?-->
       &RFC5208;
 
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.5958.xml"?-->
+      &RFC5958;
+
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.5915.xml"?-->
       &RFC5915;
 
@@ -683,6 +725,17 @@ An alternate method (rfc include) is described in the references.
 
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-curdle-pkix-00.xml"?-->
       &I-D.ietf-curdle-pkix;
+
+      <reference anchor="NFC" target="http://www.unicode.org/reports/tr15/">
+	<front>
+	  <title>Unicode Standard Annex #15: Unicode Normalization Forms</title>
+	  <author initials="M." surname="Davis" fullname="Mark Davis">
+	    <organization>Google</organization>
+	  </author>
+	  <author initials="K." surname="Whistler" fullname="Ken Whistler"/>
+	  <date year="2016" month="February"/>
+	</front>
+      </reference>
 
     </references>
     <references title="Informative References">
