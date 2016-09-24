@@ -175,7 +175,8 @@ An alternate method (rfc include) is described in the references.
 	  Many applications support the use of certificates and
 	  private keys stored in files on the file system. Such
 	  applications MUST support the use of files in any of the
-	  formats mandated in <xref target="formats"/>.
+	  formats mandated in <xref target="formats"/>, in both PEM
+	  and DER containers.
 	</t>
 	<t>
 	  Applications MUST NOT require the user to provide any
@@ -200,7 +201,7 @@ An alternate method (rfc include) is described in the references.
         <t>
 	  In some cases, an application may accept certificate and
 	  private key data in the form of inline data embedded
-	  directly within its configuration file. In this case,
+	  directly within its configuration. In this case,
 	  applications MUST accept such data in any of the formats
 	  mandated in <xref target="formats"/>.
 	</t>
@@ -269,12 +270,20 @@ An alternate method (rfc include) is described in the references.
       <t>
 	The first difference that a user will typically encounter is
 	that some objects are stored in base64 in text files (PEM),
-	while others are binary (DER). Applications MUST accept both
-	forms, MUST NOT require that the user indicate which of these
-	forms are used by the object in question, and MUST infer it
-	internally. Application authors who cannot achieve this SHOULD
-	consider taking up goat farming, and never touching a
-	cryptographic application again in their life.
+	while others are binary (DER). Where objects are loaded from
+	files, applications MUST accept both forms, MUST NOT require
+	that the user indicate which of these forms are used by the
+	object in question, and MUST infer it internally. Application
+	authors who cannot achieve this SHOULD consider taking up goat
+	farming, and never touching a cryptographic application again
+	in their life.
+      </t>
+      <t>
+	Where an object is encoded directly in the configuration of an
+	application and the contents of that configuration are limited
+	to textual content, the application MAY support only objects
+	in PEM form, and not binary DER. Such applications MUST still
+	support the PEM representation of all formats listed below.
       </t>
       <section anchor="format-pkcs1" title="PKCS#1 and other native ASN.1 encodings">
 	<t>
@@ -336,11 +345,15 @@ An alternate method (rfc include) is described in the references.
       <t>
 	The weak methods included in the above list are unfortunately
 	still commonplace, and thus clients need to keep supporting
-	them as noted in <xref target="security"/>.
+	them as noted in <xref target="security"/>. However, applications
+	MAY emit a warning to the user when weak (or no) encryption is
+	used, and MAY require an additional configuration directive to
+	enable the use of weakly-encrypted and unencrypted keys.
       </t>
-      <t>The presence of these algorithms in the list is not in any way to be
-	taken as approval for tools to continue creating objects in
-	such forms. Except for a brief discussion in <xref
+      <t>
+	The presence of these algorithms in the list is not in any way
+	to be taken as approval for tools to continue creating objects
+	in such forms. Except for a brief discussion in <xref
 	target="writing"/>. the creation of private keys is outside
 	the scope of this document.
       </t>
