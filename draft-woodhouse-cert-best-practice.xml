@@ -14,6 +14,7 @@ An alternate method (rfc include) is described in the references.
 <!ENTITY RFC5958 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5958.xml">
 <!ENTITY RFC5915 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5915.xml">
 <!ENTITY RFC7292 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7292.xml">
+<!ENTITY RFC7468 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7468.xml">
 <!ENTITY RFC7512 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7512.xml">
 <!ENTITY DTLS SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6347.xml">
 <!ENTITY I-D.ietf-curdle-pkix SYSTEM
@@ -68,22 +69,29 @@ An alternate method (rfc include) is described in the references.
       </t>
       <t>
 	Applications have historically been massively inconsistent in
-	which subset of these forms have been supported. This memo sets
-	out best practice for applications in the interest of usability
-	and consistency.
+	which subset of these forms have been supported, and what
+	knowledge is demanded of the user. This memo sets out best
+	practice for applications in the interest of usability and
+	consistency.
       </t>
     </abstract>
   </front>
   <middle>
     <section anchor="intro" title="Introduction">
       <t>
-	These recommendations are intended to provide consistency to
-	users.  If a user has a client certificate in a file, or
-	residing in a hardware or software token or a system
+	These recommendations are intended to provide consistency and
+	simplicity to users. If a user has a client certificate in a
+	file, or residing in a hardware or software token or a system
 	certificate store, it should be possible to use that
 	certificate from any application, using exactly the same
 	identifier (e.g. its filename or PKCS#11 URI <xref
 	target="RFC7512"/>) to reference it.
+      </t>
+      <t>
+	No additional information should be required from the user
+	other than perhaps a password; the user should certainly never
+	be expected to know about which of the myriad possible formats
+	the key or certificate are stored in.
       </t>
     </section>
     <section anchor="terms" title="Terminology">
@@ -107,8 +115,8 @@ An alternate method (rfc include) is described in the references.
 	application "support" a given type of key or storage format,
 	that is limited strictly to reading and using the certificates
 	and private keys. Support for creating and writing such
-	objects is an orthogonal concern, and outside the scope of
-	client applications.
+	objects is an orthogonal concern, and generally outside the
+	scope of client applications.
       </t>
     </section>
     <section anchor="keytypes" title="Key types">
@@ -269,14 +277,11 @@ An alternate method (rfc include) is described in the references.
       </t>
       <t>
 	The first difference that a user will typically encounter is
-	that some objects are stored in base64 in text files (PEM),
-	while others are binary (DER). Where objects are loaded from
-	files, applications MUST accept both forms, MUST NOT require
-	that the user indicate which of these forms are used by the
-	object in question, and MUST infer it internally. Application
-	authors who cannot achieve this SHOULD consider taking up goat
-	farming, and never touching a cryptographic application again
-	in their life.
+	that some objects are stored in base64 in text files (PEM)
+	<xref target="RFC7468"/>, while others are binary (DER).
+	Applications MUST NOT require that the user or the
+	configuration specify which of these forms is used, and MUST
+	infer it internally.
       </t>
       <t>
 	Where an object is encoded directly in the configuration of an
@@ -284,6 +289,19 @@ An alternate method (rfc include) is described in the references.
 	to textual content, the application MAY support only objects
 	in PEM form, and not binary DER. Such applications MUST still
 	support the PEM representation of all formats listed below.
+      </t>
+      <t>
+	Applications MUST accept all of the formats below without
+	requiring any additional information from the user or the
+	configuration. Where an application has an existing "key
+	format" or similar option which has historically been required
+	to disambiguate between formats (either the formats below or
+	between PEM and DER), application SHOULD NOT document this use
+	of that legacy option as current practice, and SHOULD default
+	to working it out automatically. Application authors who
+	cannot achieve this SHOULD consider taking up goat farming,
+	and never touching a cryptographic application again in their
+	life.
       </t>
       <section anchor="format-pkcs1" title="PKCS#1 and other native ASN.1 encodings">
 	<t>
@@ -418,7 +436,15 @@ An alternate method (rfc include) is described in the references.
 	ensure that the password provided by the user is correctly
 	converted to the required character set for the encryption.
 	See notes in <xref target="passwords"/> regarding the ways in
-	which this has historically been broken in some cases.
+	which this has historically been broken in some cases. For this
+	reason, applications SHOULD export to PKCS#12 in preference to
+	any other formats. If insufficiently-specified formats such as
+	PKCS#8 are used for export, applications SHOULD convert the
+	password to UTF-8 for the purpose of key derivation.
+      </t>
+      <t>
+	Applications which export private keys to PKCS#12 SHOULD use a
+	single passphrase for every encrypted bag therein.
       </t>
       <t>
 	The second exception is tools which generate keys and
@@ -450,10 +476,22 @@ An alternate method (rfc include) is described in the references.
     </section>
     <section anchor="passwords" title="Passwords and character sets">
       <t>
-	Applications MUST allow a passphrase or PIN to be provided for
-	private keys, either in advance through a separate
-	configuration item or by means of a callback at runtime which
-	can display a prompt to the user.
+	Applications MUST allow at least passphrase or PIN to be
+	provided for private keys, either in advance through a
+	separate configuration item or by means of a callback at
+	runtime which can display a prompt to the user.
+      </t>
+      <t>
+	Applications SHOULD, where possible, allow for the possibility
+	that a single object may require more than one passphrase, as
+	is the case of PKCS#12 objects.
+      </t>
+      <t>
+	Applications which support PKCS#11 SHOULD support the use of
+	keys with the CKA_ALWAYS_AUTHENTICATE attribute set to
+	CK_TRUE. In this case the PIN will need to be provided to the
+	PKCS#11 provider again for each cryptographic operation using
+	the key.
       </t>
       <t>
 	Applications SHOULD also allow for the possibility that a
@@ -553,7 +591,7 @@ An alternate method (rfc include) is described in the references.
       <section anchor="password-pkcs5" title="PKCS#5 password derivation">
 	<t>
 	  Some storage formats such as PKCS#8 <xref target="RFC5208"/>
-	  make use of key deriviation functions defined in PKCS#5
+	  make use of key derivation functions defined in PKCS#5
 	  <xref target="RFC2898"/> for encryption. Lamentably, PKCS#5
 	  does not mandate the use of a specific character set for
 	  interoperability. It does, however, recommend "that
@@ -732,6 +770,9 @@ An alternate method (rfc include) is described in the references.
 
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7292.xml"?-->
       &RFC7292;
+
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7468.xml"?-->
+      &RFC7468;
 
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7512.xml"?-->
       &RFC7512;
