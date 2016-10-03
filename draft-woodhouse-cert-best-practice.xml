@@ -611,6 +611,31 @@ An alternate method (rfc include) is described in the references.
 	  the password in the local character set.
 	</t>
       </section>
+      <section anchor="password-pkcs11" title="PKCS#11 PIN">
+	<t>
+	  The PKCS#11 specification <xref target="PKCS11"/> specifies
+	  that the CK_UTF8CHAR type used for the PIN "holds UTF-8
+	  encoded Unicode charaacters as specified in RFC2279". Older
+	  versions of the PKCS#11 specification limited the PIN still
+	  further, to a subset of ASCII printable characters.
+	</t>
+	<t>
+	  Thus, applications supplying a PIN to a PKCS#11 module MUST
+	  convert from the character set in which the PIN was provided,
+	  to UTF-8.
+	</t>
+	<t>
+	  When a login with the PIN encoded in UTF-8 fails,
+	  applications MUST NOT fall back to trying again with the
+	  local character set. That behaviour is permitted for file
+	  formats, where an additional failed decryption attempt would
+	  be harmless. In PKCS#11, this would be likely to result in
+	  tokens becoming locked due to excessive PIN failures.
+	  It would be especially unwise given that using the PIN in
+	  the local character set is known to be in violation of
+	  the PKCS#11 specification and should always fail.
+	</t>
+      </section>
     </section>
     <section anchor="pkcs11search" title="Locating objects in PKCS#11">
       <t>
