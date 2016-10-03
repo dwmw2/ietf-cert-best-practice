@@ -476,7 +476,7 @@ An alternate method (rfc include) is described in the references.
     </section>
     <section anchor="passwords" title="Passwords and character sets">
       <t>
-	Applications MUST allow at least passphrase or PIN to be
+	Applications MUST allow at least one passphrase or PIN to be
 	provided for private keys, either in advance through a
 	separate configuration item or by means of a callback at
 	runtime which can display a prompt to the user.
