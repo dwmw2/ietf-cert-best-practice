@@ -19,6 +19,8 @@ An alternate method (rfc include) is described in the references.
 <!ENTITY DTLS SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6347.xml">
 <!ENTITY I-D.ietf-curdle-pkix SYSTEM
 	"http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-curdle-pkix-00.xml">
+<!ENTITY I-D.mavrogiannopoulos-tpmuri SYSTEM
+	"http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-mavrogiannopoulos-tpmuri-01.xml">
 
 ]>
 <?rfc toc="no"?>
@@ -27,7 +29,7 @@ An alternate method (rfc include) is described in the references.
   <front>
     <title abbrev="Certificate best practice">Recommendations for applications using X.509 client certificates</title>
     <author initials="D." surname="Woodhouse" fullname="David Woodhouse">
-      <organization>Intel</organization>
+      <organization>Amazon Web Services</organization>
       <address>
         <postal>
           <street/>
@@ -246,6 +248,37 @@ An alternate method (rfc include) is described in the references.
 	  before the existence of RFC7512. They SHOULD NOT document
 	  these legacy identifiers as current practice, and SHOULD
 	  document the use of RFC7512 standard identifiers instead.
+	</t>
+      </section>
+      <section anchor="ident-tpm" title="Trusted Platform Module (TPM) keys">
+	<t>
+	  The Trusted Platform Module has facilities both for storage
+	  and "wrapping" of keys. Applications which run on a platform
+	  which contains a TPM SHOULD support both.
+	</t>
+	<t>
+	  For keys stored in the TPM, applications SHOULD support the
+	  use of a TPMKEY URI as defined in
+	  <xref target="I-D.mavrogiannopoulos-tpmuri"/> to identify
+	  the key.
+	</t>
+	<t>
+	  For wrapped keys which are loaded into the TPM on demand,
+	  applications MAY also support the ASN.1 tpmkey-file option
+	  defined in <xref target="I-D.mavrogiannopoulos-tpmuri"/>,
+	  but it should be noted that the common tools do not create
+	  files in the ASN.1 format required therein so this support
+	  is of limited utility to the user.
+	</t>
+	<t>
+	  Rather, a common form of storage for "wrapped" keys is to
+	  encode the binary TCPA_KEY structure in a single ASN.1
+	  OCTET-STRING, and store the result in PEM format with the
+	  tag "-----BEGIN TSS KEY BLOB-----". Applications SHOULD
+	  support this format, and should automatically do so if
+	  presented with such a file or inline PEM data blob. As with
+	  files of various other types, no explicit indication of the
+	  file type should be required.
 	</t>
       </section>
       <section anchor="ident-system" title="System store">
@@ -804,6 +837,9 @@ An alternate method (rfc include) is described in the references.
 
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-curdle-pkix-00.xml"?-->
       &I-D.ietf-curdle-pkix;
+
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-mavrogiannopoulos-tpmuri-01.xml"?-->
+      &I-D.mavrogiannopoulos-tpmuri;
 
       <reference anchor="NFC" target="http://www.unicode.org/reports/tr15/">
 	<front>
