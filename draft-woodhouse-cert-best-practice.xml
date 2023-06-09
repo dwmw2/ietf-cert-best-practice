@@ -17,8 +17,7 @@ An alternate method (rfc include) is described in the references.
 <!ENTITY RFC7468 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7468.xml">
 <!ENTITY RFC7512 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7512.xml">
 <!ENTITY DTLS SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6347.xml">
-<!ENTITY I-D.ietf-curdle-pkix SYSTEM
-	"http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-curdle-pkix-00.xml">
+<!ENTITY RFC8410 SYSTEM	"http://xml.resource.org/public/rfc/bibxml/reference.RFC.8410.xml">
 <!ENTITY I-D.mavrogiannopoulos-tpmuri SYSTEM
 	"http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-mavrogiannopoulos-tpmuri-01.xml">
 
@@ -349,7 +348,7 @@ An alternate method (rfc include) is described in the references.
 	    documented in <xref target="openssl-dsa"/> (if DSA keys
 	    are supported at all)</t>
 	    <t>ECDSA keys in the form defined by <xref target="RFC5915"/></t>
-	    <t>EdDSA keys in the form defined by <xref target="I-D.ietf-curdle-pkix"/></t>
+	    <t>EdDSA keys in the form defined by <xref target="RFC8410"/></t>
 	  </list>
 	</t>
       </section>
@@ -854,8 +853,8 @@ An alternate method (rfc include) is described in the references.
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7512.xml"?-->
       &RFC7512;
 
-      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-curdle-pkix-00.xml"?-->
-      &I-D.ietf-curdle-pkix;
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8410.xml"?-->
+      &RFC8410;
 
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-mavrogiannopoulos-tpmuri-01.xml"?-->
       &I-D.mavrogiannopoulos-tpmuri;
