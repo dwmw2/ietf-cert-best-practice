@@ -52,7 +52,7 @@ An alternate method (rfc include) is described in the references.
         <email>nmav@redhat.com</email>
       </address>
     </author>
-    <date month="September" year="2016"/>
+    <date month="June" year="2023"/>
     <area>Security</area>
     <!--      <workgroup>TLS Working Group</workgroup> -->
     <keyword>I-D</keyword>
@@ -110,7 +110,10 @@ An alternate method (rfc include) is described in the references.
 	authentication and signatures. Except where explicitly
 	referenced in <xref target="writing"/>, tools which generate
 	certificate and public key files are outside the scope of this
-	document.
+	document. As noted in <xref target="security"/>, the security
+	considerations when generating or accepting a given certificate
+	are markedly different to the considerations when presenting
+	that same certificate as evidence of client identity.
       </t>
       <t>
 	In particular, where this document requires that an
@@ -126,7 +129,7 @@ An alternate method (rfc include) is described in the references.
 	Applications MUST NOT be limited to using only RSA keys. An application:
       <list style="symbols">
 	<t>MUST support RSA keys of various sizes</t>
-	<t>SHOULD support DSA keys of 1024 bits</t>
+	<t>MAY support DSA keys of 1024 bits</t>
 	<t>MUST support ECDSA keys based on SECP256R1 curve</t>
 	<t>SHOULD support EdDSA keys based on Ed25519 curve</t>
 	<t>SHOULD support ECDSA or EdDSA keys based on other well-known curves</t>
@@ -216,8 +219,8 @@ An alternate method (rfc include) is described in the references.
 	  mandated in <xref target="formats"/>.
 	</t>
 	<t>
-	  As with files, applications MUST NOT require any hint to be
-	  provided regarding the format of the provided blob.
+	  As with files, applications MUST NOT require any additional
+	  hint to be provided regarding the format of the provided blob.
 	</t>
       </section>
       <section anchor="ident-pkcs11" title="PKCS#11 objects">
@@ -226,7 +229,7 @@ An alternate method (rfc include) is described in the references.
 	  and has a system-wide configuration indicating which which
 	  PKCS#11 provider modules should be loaded, applications
 	  SHOULD load the PKCS#11 providers indicated by the system
-	  configuration. Applications MAY also load additional tokens
+	  configuration. Applications MAY also load additional providers
 	  according to their own configuration.
 	</t>
 	<t>
@@ -250,35 +253,36 @@ An alternate method (rfc include) is described in the references.
 	  document the use of RFC7512 standard identifiers instead.
 	</t>
       </section>
-      <section anchor="ident-tpm" title="Trusted Platform Module (TPM) keys">
+      <section anchor="ident-tpm" title="Trusted Platform Module (TPM) stored keys">
 	<t>
-	  The Trusted Platform Module has facilities both for storage
-	  and "wrapping" of keys. Applications which run on a platform
-	  which contains a TPM SHOULD support both.
+	  Applications which run on a platform which contains a
+	  Trusted Platform Module (TPM) conforming to the v2.0
+	  specification (<xref target="TPMv2"/>) or newer SHOULD
+	  support using it for key operations. Applications MAY
+	  support the older TPM v1.2 stack.
 	</t>
 	<t>
-	  For keys stored in the TPM, applications SHOULD support the
-	  use of a TPMKEY URI as defined in
-	  <xref target="I-D.mavrogiannopoulos-tpmuri"/> to identify
-	  the key.
+	  Both versions of the TPM stack have support for non-volatile
+	  storage and "wrapping" of keys. The latter requires storage
+	  outside the TPM and is discussed alongside other file
+	  formats in <xref target="format-tpm"/>.
 	</t>
 	<t>
-	  For wrapped keys which are loaded into the TPM on demand,
-	  applications MAY also support the ASN.1 tpmkey-file option
-	  defined in <xref target="I-D.mavrogiannopoulos-tpmuri"/>,
-	  but it should be noted that the common tools do not create
-	  files in the ASN.1 format required therein so this support
-	  is of limited utility to the user.
+	  If the older TPM v1.2 specification is supported,
+	  applications SHOULD support referencing a key in its
+	  non-volatile memory by use of a TPMKEY URI as defined in
+	  <xref target="I-D.mavrogiannopoulos-tpmuri"/>. Applications
+	  MAY support the tpmkey-file option defined therein but it
+	  should be noted that the common tools do not create files in
+	  the ASN.1 format required therein so this support is of
+	  limited utility to the user. A better file format for TPM v1.2
+	  support is described in <xref target="format-tpm"/>.
 	</t>
 	<t>
-	  Rather, a common form of storage for "wrapped" keys is to
-	  encode the binary TCPA_KEY structure in a single ASN.1
-	  OCTET-STRING, and store the result in PEM format with the
-	  tag "-----BEGIN TSS KEY BLOB-----". Applications SHOULD
-	  support this format, and should automatically do so if
-	  presented with such a file or inline PEM data blob. As with
-	  files of various other types, no explicit indication of the
-	  file type should be required.
+	  For keys stored in the TPM v2.0 non-volatile memory, no URI
+	  form exists at the time of writing. If such a standard or
+	  convention comes into existence, applications SHOULD support
+	  it.
 	</t>
       </section>
       <section anchor="ident-system" title="System store">
@@ -373,6 +377,40 @@ An alternate method (rfc include) is described in the references.
 	algorithms which become common.
       </t>
       </section>
+      <section anchor="format-tpm" title="Trusted Platform Module (TPM) wrapped keys">
+	<t>
+	  As noted in <xref target="ident-tpm"/>, applications which run
+	  on a system with a v2.0 or newer TPM SHOULD support using it
+	  for key operations.
+	</t>
+	<t>
+	  Applications supporting TPM v2.0 MUST automatically detect
+	  files in the ASN.1 form defined in <xref
+	  target="I-D.Bottomley-tpm2-asn1"/>, in DER form as well as
+	  the PEM format with the tag "-----BEGIN TSS2 PRIVATE
+	  KEY-----".
+	</t>
+	<t>
+	  Since the native form of the TPM v1.2 key blob is not simple
+	  to detect, applications MAY lack support for detecting the
+	  binary form. This is an exception to the general rule that all
+	  file types must be automatically detected without additional
+	  user input.
+	</t>
+	<t>
+	  The tpmkey-file option defined in
+	  <xref target="I-D.mavrogiannopoulos-tpmuri"/> is also of limited
+	  utility and need not be supported.
+	</t>
+	<t>
+	  Rather, a common form of storage for "wrapped" keys with
+	  TPM v1.2 is to encode the binary TCPA_KEY structure in a
+	  single ASN.1 OCTET-STRING, and store the result in PEM
+	  format with the tag "-----BEGIN TSS KEY
+	  BLOB-----". Applications supporting TPM v1.2 MUST automatically
+	  detect and support this format.
+	</t>
+      </section>
     </section>
     <section anchor="privkeys" title="Private keys">
     <section anchor="encryption" title="Encryption">
@@ -451,14 +489,14 @@ An alternate method (rfc include) is described in the references.
 	In the general case, writing private key files is outside the
 	scope of this document. These recommendations cover only the
 	usage of certificate and private keys by client applications.
-	There are two specific exceptions to this general case, which follow.
+	An exception to this general case occurs when a client application
+	supports exporting a certificate and private key from a certificate
+	store to a file.
       </t>
       <t>
-	Some client applications support exporting a certificate and
-	private key from a certificate store to a file. When doing so,
-	applications MUST allow exporting in at least the PKCS#12 <xref
-	target="RFC7292"/> format under the following encryption
-	methods:
+	When doing so, applications MUST allow exporting in at least
+	the PKCS#12 <xref target="RFC7292"/> format under the
+	following encryption methods:
 	<list style="symbols">
 	  <t>PBES2 AES-128-CBC (OID: 2.16.840.1.101.3.4.1.2) <xref target="RFC2898"/></t>
 	  <t>PBES2 AES-256-CBC (OID: 2.16.840.1.101.3.4.1.42) <xref target="RFC2898"/></t>
@@ -480,29 +518,9 @@ An alternate method (rfc include) is described in the references.
 	single passphrase for every encrypted bag therein.
       </t>
       <t>
-	The second exception is tools which generate keys and
-	provision certificates. Historically, these tools have been
-	responsible for the plethora of key formats and encryption
-	methods which client applications now are burdened to support.
-	Default output formats have been changed from one version of
-	software to the next, and even given versions of some software
-	have been inconsistent about which methods they use, according
-	to the operation they are performing.
-      </t>
-      <t>
-	Although these tools are outside the scope of this document,
-	we hope that they will improve matters. A given version of a
-	single piece of software should strive to generate keys by
-	default in as few different forms as possible, rather than
-	apparently trying to ensure that each operation performed with
-	that tool will generate a different format of file or use a
-	different encryption method.
-      </t>
-      <t>
-	Furthermore, when changing defaults or defining new formats and
-	encryption methods for private keys, some consideration should
-	be given to compatibility with existing clients and whether the
-	use cases can be handled with existing supported methods.
+	Applications which support a v2.0 TPM and are able to export
+	the key information MUST do so in the PEM format described in
+	<xref target="I-D.Bottomley-tpm2-asn1"/>.
       </t>
     </section>
 
@@ -782,12 +800,13 @@ An alternate method (rfc include) is described in the references.
       <t>
 	If a user is in possession of a certificate for a 1024-bit DSA
 	key, for example, then we should focus on the server which is
-	accepting those certificates — not the client which is
-	attempting to use them. Client software tends to move more
-	quickly and be updated more frequently than servers, so
-	algorithms may be considered deprecated by a client, while the
-	server is still accepting them and an organisation's
-	infrastruture is even still issuing certificates in that form.
+	accepting those certificates or the PKI infrastructure which
+	is issuing them — not the client which is attempting to use
+	them.  Client software tends to move more quickly and be
+	updated more frequently than servers, so algorithms may be
+	considered deprecated by a client, while the server is still
+	accepting them and an organisation's infrastruture is even
+	still issuing certificates in that form.
       </t>
       <t>
 	Likewise, it is common for private keys to be stored with weak
@@ -840,6 +859,24 @@ An alternate method (rfc include) is described in the references.
 
       <!--?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-mavrogiannopoulos-tpmuri-01.xml"?-->
       &I-D.mavrogiannopoulos-tpmuri;
+
+      <reference anchor="I-D.Bottomley-tpm2-asn1" target="https://www.hansenpartnership.com/draft-bottomley-tpm2-keys.html">
+	<front>
+	  <title>ASN.1 Specification for TPM 2.0 Key Files</title>
+	  <author initials="J." surname="Bottomley" fullname="James Bottomley">
+	    <organization>Linux Kernel</organization>
+	  </author>
+	  <date year="2023" month="April"/>
+	</front>
+      </reference>
+
+      <reference anchor="TPMv2" target="https://trustedcomputinggroup.org/resource/tpm-library-specification/">
+	<front>
+	  <title>TPM 2.0 Library Specification</title>
+	  <author><organization>Trusted Computing Group</organization></author>
+	  <date year="2013" month="March"/>
+	</front>
+      </reference>
 
       <reference anchor="NFC" target="http://www.unicode.org/reports/tr15/">
 	<front>
