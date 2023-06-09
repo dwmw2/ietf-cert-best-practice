@@ -301,8 +301,7 @@ An alternate method (rfc include) is described in the references.
       <t>
 	There exist a multitude of formats in which certificates and
 	their corresponding private keys can be stored, and new
-	formats come into existence with distressing regularity. On
-	the latter topic, see <xref target="writing"/>.
+	formats come into existence with distressing regularity.
       </t>
       <t>
 	Users have little control over the form in which certificates
