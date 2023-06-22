@@ -127,9 +127,10 @@ An alternate method (rfc include) is described in the references.
       <t>
 	Applications MUST NOT be limited to using only RSA keys. An application:
       <list style="symbols">
-	<t>MUST support RSA keys of various sizes</t>
+	<t>MUST support RSA keys of 1024, 2048, 3072 and 4096 bits</t>
+	<t>SHOULD support RSA keys of other arbitrary sizes, including non power-of-two sizes</t>
 	<t>MAY support DSA keys of 1024 bits</t>
-	<t>MUST support ECDSA keys based on SECP256R1 curve</t>
+	<t>MUST support ECDSA keys based on SECP256R1, SECP384R1, SECP521R1 curves</t>
 	<t>SHOULD support EdDSA keys based on Ed25519 curve</t>
 	<t>SHOULD support ECDSA or EdDSA keys based on other well-known curves</t>
       </list>
