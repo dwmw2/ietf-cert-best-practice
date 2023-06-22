@@ -928,7 +928,7 @@ format may be either a raw DER encoding, or a PEM encoding with the header
         p        INTEGER,
         q        INTEGER,
         g        INTEGER,
-        Y        INTEGER, -- public
+        pub      INTEGER, -- public
         priv     INTEGER, -- private
 }
 ]]></artwork>
