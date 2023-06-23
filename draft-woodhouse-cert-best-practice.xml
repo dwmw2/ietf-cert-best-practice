@@ -921,19 +921,22 @@ is a widely accepted standard format for storing DSA private keys. The stored
 format may be either a raw DER encoding, or a PEM encoding with the header
 "BEGIN DSA PRIVATE KEY".
       </t>
-<figure>
-<artwork><![CDATA[
-    DSAPrivateKey ::= SEQUENCE {
-        version  INTEGER, -- should be zero
-        p        INTEGER,
-        q        INTEGER,
-        g        INTEGER,
-        pub      INTEGER, -- public
-        priv     INTEGER, -- private
+      <sourcecode type="asn.1" markers="false"><![CDATA[
+DSA-Private-Key-Module
+DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+DSAPrivateKey ::= SEQUENCE {
+    version  INTEGER, -- should be zero
+    p        INTEGER,
+    q        INTEGER,
+    g        INTEGER,
+    pub      INTEGER, -- public
+    priv     INTEGER, -- private
 }
-]]></artwork>
-</figure>
-    </section>
+END
+        ]]></sourcecode>
+   </section>
 
   </back>
 </rfc>
