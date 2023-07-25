@@ -24,7 +24,7 @@ An alternate method (rfc include) is described in the references.
 ]>
 <?rfc toc="no"?>
 <?rfc symrefs="yes"?>
-<rfc ipr="trust200902" category="bcp" docName="draft-woodhouse-cert-best-practice-00">
+<rfc ipr="trust200902" category="bcp" docName="draft-woodhouse-cert-best-practice-01">
   <front>
     <title abbrev="Certificate best practice">Recommendations for applications using X.509 client certificates</title>
     <author initials="D." surname="Woodhouse" fullname="David Woodhouse">
@@ -50,7 +50,7 @@ An alternate method (rfc include) is described in the references.
         <email>n.mavrogiannopoulos@gmail.com</email>
       </address>
     </author>
-    <date month="June" year="2023"/>
+    <date month="July" year="2023"/>
     <area>Security</area>
     <!--      <workgroup>TLS Working Group</workgroup> -->
     <keyword>I-D</keyword>
