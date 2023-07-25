@@ -40,7 +40,6 @@ An alternate method (rfc include) is described in the references.
       </address>
     </author>
     <author initials="N." surname="Mavrogiannopoulos" fullname="Nikos Mavrogiannopoulos">
-      <organization abbrev="Red Hat">Red Hat, Inc.</organization>
       <address>
         <postal>
           <street/>
@@ -48,7 +47,7 @@ An alternate method (rfc include) is described in the references.
           <region/>
           <country>Czech Republic</country>
         </postal>
-        <email>nmav@redhat.com</email>
+        <email>n.mavrogiannopoulos@gmail.com</email>
       </address>
     </author>
     <date month="June" year="2023"/>
